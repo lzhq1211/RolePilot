@@ -63,7 +63,7 @@ RolePilot 是一个面向求职场景的**Resume Agent**。
 环境要求：Node.js 22+、pnpm 10.12.1、Git。
 
 ```bash
-git clone <你的 GitHub 仓库地址>
+git clone <https://github.com/lzhq1211/RolePilot/>
 cd RolePilot
 pnpm install --frozen-lockfile
 cp .env.example .env
