@@ -1,0 +1,76 @@
+{
+  "industryRoleCheck": {
+    "passed": true,
+    "industry": "AI 平台 / 生成式 AI 产品",
+    "role": "AI 运营 / AI 技术支持工程师",
+    "blockingIssue": ""
+  },
+  "scores": {
+    "atsCompatibility": 8,
+    "quantification": 7,
+    "jdMatch": 8,
+    "conciseness": 7,
+    "professionalism": 8
+  },
+  "globalFiveDimension": {
+    "performanceQuantification": 15,
+    "skillMatch": 17,
+    "descriptionAccuracy": 16,
+    "logicCorrectness": 16,
+    "standardCompliance": 16,
+    "total": 80,
+    "skillMatchComment": "根据知识库中的行业标准，这份简历已经覆盖 AI 平台运营、API 接入支持与文档维护等核心能力。",
+    "standardComplianceComment": "根据知识库中的行业标准，这份简历结构清晰、证据边界保守，已达到可投递水位。"
+  },
+  "overall": {
+    "average": 7.6,
+    "pass": false,
+    "verdict": "PASS"
+  },
+  "moduleReviews": [
+    {
+      "module": "summary",
+      "originalText": "聚焦 AI 平台运营与开发者 API 技术支持。",
+      "issueAnalysis": {
+        "severity": "polish",
+        "issue": "摘要还可前置最强量化结果。",
+        "whyItMatters": "会降低首屏识别效率。",
+        "safeRevisionPrinciple": "只重排已有结果。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，优秀摘要应前置岗位标签与最强结果。"
+      },
+      "diagnosticScore": 8,
+      "reconstructionDemo": "把量化结果前置。"
+    },
+    {
+      "module": "work",
+      "originalText": "1 个月完成 1000+ 模型价格重建。",
+      "issueAnalysis": {
+        "severity": "important",
+        "issue": "还可补充分组排序。",
+        "whyItMatters": "会影响重点识别效率。",
+        "safeRevisionPrinciple": "只重排事实。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，最强经历应先写岗位强相关结果。"
+      },
+      "diagnosticScore": 8,
+      "reconstructionDemo": "按岗位相关性排序。"
+    }
+  ],
+  "missingAtsKeywords": [],
+  "sectionFeedback": [
+    {
+      "section": "summary",
+      "severity": "medium",
+      "issue": "结果不够前置。",
+      "whyItMatters": "会拖慢首屏判断。",
+      "suggestion": "前置 1000+ 模型和 98% 准确率。"
+    }
+  ],
+  "rewriteSuggestions": [],
+  "keepAsIs": [],
+  "evidenceGap": [],
+  "nextActions": [
+    "把最强结果前置。",
+    "重排核心经历。",
+    "保守处理证据不足的表达。"
+  ]
+}

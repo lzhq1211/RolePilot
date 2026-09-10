@@ -1,0 +1,124 @@
+{
+  "runStatuses": [
+    "DRAFT",
+    "READY",
+    "QUEUED",
+    "RUNNING",
+    "NEEDS_USER_INPUT",
+    "COMPLETED",
+    "UNSUPPORTED",
+    "FAILED",
+    "CANCELLED"
+  ],
+  "runStepIds": ["mine", "jd-analysis", "preflight", "write", "review"],
+  "runStepStatuses": ["pending", "running", "completed", "failed", "waiting", "skipped"],
+  "runFailureCodes": [
+    "WORKER_INTERRUPTED",
+    "RUN_EXECUTION_FAILED",
+    "SOURCE_TEXT_UNAVAILABLE",
+    "CHECKPOINT_INVALID",
+    "ARTIFACT_PERSIST_FAILED"
+  ],
+  "runStopReasons": [
+    "needs-user-input",
+    "unsupported-input",
+    "pass",
+    "early-stop",
+    "max-rounds",
+    "cancelled"
+  ],
+  "runEventTypes": [
+    "run.status",
+    "run.step",
+    "run.progress",
+    "run.artifact",
+    "run.completed",
+    "run.cancelled",
+    "run.failed"
+  ],
+  "runEvidenceStatuses": ["PENDING", "CONSUMED", "ABANDONED"],
+  "runCleanupStatuses": ["NOT_REQUESTED", "PENDING", "COMPLETED", "FAILED"],
+  "runArtifactTypes": [
+    "timeline",
+    "jd-analysis",
+    "preflight",
+    "questions",
+    "unsupported",
+    "resume",
+    "review-report",
+    "optimization-decision",
+    "supplemental-evidence",
+    "checkpoint",
+    "checkpoint-manifest",
+    "log"
+  ],
+  "runArtifactStatuses": ["STAGED", "PUBLISHED", "CLEANUP_PENDING", "DELETED"],
+  "runLimits": {
+    "maxEvidenceCodePoints": 20000,
+    "maxEvidenceBodyBytes": 131072
+  },
+  "run": {
+    "id": "run-1",
+    "status": "COMPLETED",
+    "company": "RolePilot",
+    "title": "AI 产品经理",
+    "resumeSourceId": "source-1",
+    "currentStep": "review",
+    "stepStatuses": [
+      { "id": "mine", "status": "completed" },
+      { "id": "jd-analysis", "status": "completed" },
+      { "id": "preflight", "status": "completed" },
+      { "id": "write", "status": "completed" },
+      { "id": "review", "status": "completed" }
+    ],
+    "stopReason": "pass",
+    "failureCode": null,
+    "pendingUserQuestions": [],
+    "artifactIds": ["artifact-1"],
+    "checkpointArtifactId": null,
+    "parentRunId": null,
+    "createdAt": "2026-09-05T00:00:00.000Z",
+    "updatedAt": "2026-09-05T00:01:00.000Z",
+    "completedAt": "2026-09-05T00:01:00.000Z"
+  },
+  "events": [
+    {
+      "id": "event-1",
+      "runId": "run-1",
+      "sequence": 1,
+      "type": "run.status",
+      "payload": {
+        "runId": "run-1",
+        "status": "QUEUED",
+        "stopReason": null,
+        "failureCode": null
+      },
+      "createdAt": "2026-09-05T00:00:00.000Z"
+    },
+    {
+      "id": "event-2",
+      "runId": "run-1",
+      "sequence": 2,
+      "type": "run.step",
+      "payload": {
+        "runId": "run-1",
+        "stepId": "mine",
+        "status": "completed",
+        "durationMs": 1200
+      },
+      "createdAt": "2026-09-05T00:00:01.200Z"
+    },
+    {
+      "id": "event-3",
+      "runId": "run-1",
+      "sequence": 3,
+      "type": "run.completed",
+      "payload": {
+        "runId": "run-1",
+        "status": "COMPLETED",
+        "stopReason": "pass"
+      },
+      "createdAt": "2026-09-05T00:01:00.000Z"
+    }
+  ]
+}

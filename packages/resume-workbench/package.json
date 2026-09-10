@@ -1,0 +1,25 @@
+{
+  "name": "resume-workbench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./template": "./src/template.html",
+    "./styles/app.css": "./src/styles/app.css",
+    "./styles/resume.css": "./src/styles/resume.css",
+    "./styles/print.css": "./src/styles/print.css",
+    "./fixtures/sample-resume.md": "./fixtures/valid/sample-resume.md"
+  },
+  "dependencies": {
+    "web-contracts": "workspace:*"
+  },
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "check": "node --check ./scripts/build.mjs && node --check ./tests/parser-validator.test.mjs",
+    "test": "node ./tests/parser-validator.test.mjs"
+  }
+}

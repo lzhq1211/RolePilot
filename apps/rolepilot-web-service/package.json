@@ -1,0 +1,21 @@
+{
+  "name": "rolepilot-web-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "check": "pnpm exec tsc --noEmit -p tsconfig.json",
+    "test": "node ../../scripts/run-package-tests.mjs",
+    "start": "node ./dist/cli.js"
+  },
+  "dependencies": {
+    "document-ingest": "workspace:*",
+    "platform-contracts": "workspace:*",
+    "rolepilot-engine": "workspace:*",
+    "web-contracts": "workspace:*"
+  }
+}

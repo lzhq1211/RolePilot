@@ -1,0 +1,130 @@
+:root {
+  /* Primitive */
+  --rp-color-scanner-1: #8ab8f1;
+  --rp-color-scanner-2: #c3d9f4;
+  --rp-color-scanner-3: #ffffff;
+  --rp-color-transparent: transparent;
+  --rp-space-0: 0;
+  --rp-space-1: 4px;
+  --rp-space-2: 8px;
+  --rp-space-3: 12px;
+  --rp-space-4: 16px;
+  --rp-space-5: 20px;
+  --rp-space-6: 24px;
+  --rp-space-7: 28px;
+  --rp-space-8: 32px;
+  --rp-space-10: 40px;
+  --rp-space-12: 48px;
+  --rp-space-16: 64px;
+  --rp-space-20: 80px;
+  --rp-radius-none: 0;
+  --rp-radius-sm: 6px;
+  --rp-radius-md: 8px;
+  --rp-radius-lg: 12px;
+  --rp-radius-xl: 15px;
+  --rp-radius-full: 9999px;
+  --rp-radius-card: 24px;
+  --rp-radius-field: 16px;
+  --rp-radius-media: 36px;
+  --rp-border-width: 1px;
+  --rp-focus-width: 2px;
+  --rp-focus-offset: 4px;
+  --rp-shadow-none: none;
+  --rp-shadow-dialog: 0 24px 80px rgb(15 23 42 / 12%);
+  --rp-shadow-surface: 0 8px 30px rgb(0 0 0 / 5%);
+  --rp-shadow-button-hover: 0 4px 14px rgb(86 139 208 / 14%);
+  --rp-shadow-inset: inset 0 0 0 1px rgb(15 23 42 / 9%);
+  --rp-opacity-disabled: 0.46;
+  --rp-opacity-placeholder: 0.58;
+  --rp-opacity-media: 0.7;
+  --rp-opacity-nav: 0.92;
+  --rp-opacity-scrim: 0.68;
+  --rp-z-base: 0;
+  --rp-z-content: 1;
+  --rp-z-backdrop: 110;
+  --rp-z-drawer: 120;
+  --rp-z-skip-link: 130;
+  --rp-font-sans: "Poppins", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --rp-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --rp-weight-regular: 400;
+  --rp-weight-medium: 560;
+  --rp-weight-semibold: 620;
+  --rp-weight-strong: 650;
+  --rp-weight-bold: 700;
+  --rp-duration-fast: 160ms;
+  --rp-duration-base: 280ms;
+  --rp-duration-smooth: 520ms;
+  --rp-ease-standard: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --rp-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Semantic */
+  --rp-bg-page: #ffffff;
+  --rp-bg-field: #f8fafc;
+  --rp-bg-drawer: #ffffff;
+  --rp-bg-surface: #ffffff;
+  --rp-bg-surface-strong: #edf5ff;
+  --rp-bg-overlay: rgb(15 23 42 / 24%);
+  --rp-text-primary: hsl(0, 0%, 17%);
+  --rp-text-secondary: #475569;
+  --rp-text-muted: #64748b;
+  --rp-text-placeholder: #64748b;
+  --rp-text-on-light: #0f172a;
+  --rp-text-on-media: #ffffff;
+  --rp-text-on-media-muted: rgb(255 255 255 / 85%);
+  --rp-bg-media: #243447;
+  --rp-media-overlay: linear-gradient(180deg, rgb(0 0 0 / 15%), rgb(0 0 0 / 70%));
+  --rp-border-subtle: rgb(15 23 42 / 8%);
+  --rp-border-default: rgb(15 23 42 / 9%);
+  --rp-border-hover: rgb(15 23 42 / 20%);
+  --rp-brand-primary: hsl(213, 90%, 78%);
+  --rp-brand-emphasis: #356da8;
+  --rp-brand-secondary: #d9e9fc;
+  --rp-action-primary-bg: var(--rp-brand-primary);
+  --rp-action-primary-bg-hover: hsl(213, 90%, 72%);
+  --rp-action-primary-fg: #0f172a;
+  --rp-status-success: #047857;
+  --rp-status-warning: #b45309;
+  --rp-status-danger: #dc2626;
+  --rp-status-running: #356da8;
+  --rp-status-pending: #64748b;
+  --rp-focus-ring: #568bd0;
+
+  /* Component */
+  --rp-container-max: 1140px;
+  --rp-gutter-desktop: 16px;
+  --rp-gutter-mobile: 12px;
+  --rp-grid-gap: var(--rp-space-6);
+  --rp-nav-height: 60px;
+  --rp-nav-top: 14px;
+  --rp-nav-blur: 18px;
+  --rp-button-font-size: 0.825rem;
+  --rp-button-font-weight: 600;
+  --rp-button-padding: 8px 20px;
+  --rp-nav-padding-x: var(--rp-space-4);
+  --rp-nav-gap: var(--rp-space-8);
+  --rp-nav-radius: 9999px;
+  --rp-nav-bg: rgb(255 255 255 / 88%);
+  --rp-nav-border: var(--rp-border-default);
+  --rp-nav-link-height: 44px;
+  --rp-drawer-width: min(88vw, 360px);
+  --rp-drawer-padding: 96px 28px 32px;
+  --rp-drawer-link-height: 56px;
+  --rp-workflow-width: 236px;
+  --rp-workflow-min-height: 352px;
+  --rp-workflow-padding: 20px 16px 16px;
+  --rp-workflow-row-height: 44px;
+  --rp-workflow-dot: 9px;
+  --rp-workflow-connector: 1px;
+  --rp-button-primary-height: 48px;
+  --rp-button-secondary-height: 44px;
+  --rp-button-primary-radius: 9999px;
+  --rp-button-secondary-radius: 9999px;
+}
+
+@media (max-width: 620px) {
+  :root {
+    --rp-nav-height: 60px;
+    --rp-nav-padding-x: var(--rp-space-3);
+    --rp-nav-gap: var(--rp-space-4);
+  }
+}

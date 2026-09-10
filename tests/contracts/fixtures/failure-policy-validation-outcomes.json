@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "name": "manual mode surfaces readable review contract errors",
+      "mode": "manual",
+      "validation": {
+        "valid": false,
+        "errors": [
+          "missing top-level key: overall",
+          "sectionFeedback must be an array"
+        ]
+      },
+      "expectedShouldFail": false,
+      "expectedMessageIncludes": [
+        "手动模式继续执行",
+        "missing top-level key: overall",
+        "sectionFeedback must be an array"
+      ]
+    },
+    {
+      "name": "CI-like mode rejects invalid review payloads",
+      "mode": "local-ci",
+      "validation": {
+        "valid": false,
+        "errors": ["missing top-level key: overall"]
+      },
+      "expectedShouldFail": true,
+      "expectedMessageIncludes": ["schemaVersion 2 合同", "local CI 模式已拒绝继续"]
+    }
+  ]
+}

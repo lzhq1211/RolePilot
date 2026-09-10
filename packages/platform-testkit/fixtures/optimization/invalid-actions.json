@@ -1,0 +1,92 @@
+{
+  "cases": [
+    {
+      "name": "pass-with-target",
+      "decision": {
+        "action": "PASS",
+        "target": "content.basics.summary",
+        "reason": "Invalid PASS target.",
+        "evidenceRefs": [],
+        "expectedImprovement": "None.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "ask-user-without-question-or-gap",
+      "decision": {
+        "action": "ASK_USER",
+        "target": null,
+        "reason": "Missing evidence.",
+        "evidenceRefs": [],
+        "expectedImprovement": "Collect evidence.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "rewrite-without-target",
+      "decision": {
+        "action": "REWRITE_SECTION",
+        "target": null,
+        "reason": "Missing section target.",
+        "evidenceRefs": ["timeline.content.work[0]"],
+        "expectedImprovement": "Improve clarity.",
+        "risk": "medium"
+      }
+    },
+    {
+      "name": "keyword-without-evidence",
+      "decision": {
+        "action": "KEYWORD_OPTIMIZE",
+        "target": "content.skills",
+        "reason": "Missing evidence references.",
+        "evidenceRefs": [],
+        "expectedImprovement": "Improve ATS alignment.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "drop-without-claim",
+      "decision": {
+        "action": "DROP_UNSUPPORTED_CLAIM",
+        "target": null,
+        "reason": "Missing unsupported claim.",
+        "evidenceRefs": ["review.evidenceGap[0]"],
+        "expectedImprovement": "Remove unsupported content.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "reorder-with-invalid-risk",
+      "decision": {
+        "action": "REORDER",
+        "target": "content.work",
+        "reason": "Invalid risk vocabulary.",
+        "evidenceRefs": ["review.nextActions[0]"],
+        "expectedImprovement": "Improve ordering.",
+        "risk": "critical"
+      }
+    },
+    {
+      "name": "stop-with-target",
+      "decision": {
+        "action": "STOP",
+        "target": "content.work",
+        "reason": "Invalid STOP target.",
+        "evidenceRefs": [],
+        "expectedImprovement": "Preserve the current best resume.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "unsupported-action",
+      "decision": {
+        "action": "RUN_TOOL",
+        "target": null,
+        "reason": "Action is outside the allowlist.",
+        "evidenceRefs": [],
+        "expectedImprovement": "Invalid action.",
+        "risk": "high"
+      }
+    }
+  ]
+}

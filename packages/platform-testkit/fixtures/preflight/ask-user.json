@@ -1,0 +1,12 @@
+{
+  "decision": "ASK_USER",
+  "confidence": 0.48,
+  "missingEvidence": [
+    "No verified metric for production reliability impact."
+  ],
+  "blockingQuestions": [
+    "Can you provide a source-backed reliability, latency, or adoption metric for the platform work?"
+  ],
+  "unsupportedTargets": [],
+  "safeWritingScope": []
+}

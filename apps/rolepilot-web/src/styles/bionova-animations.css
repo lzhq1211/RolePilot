@@ -1,0 +1,104 @@
+/* ============================================================
+   BIONOVA 动效规范样式库
+   ============================================================ */
+
+/* 1. 进场淡入与轻度位移平滑缓动 */
+@keyframes bionovaFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: bionovaFadeUp 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 延迟交错进场 */
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+
+/* 2. 悬浮毛玻璃药丸 Top Pill 核心样式 */
+.bionova-top-pill {
+  position: fixed;
+  top: var(--rp-nav-top);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(94vw, var(--rp-container-max));
+  padding: var(--rp-space-2) var(--rp-nav-padding-x);
+  background: var(--rp-nav-bg);
+  backdrop-filter: blur(var(--rp-nav-blur));
+  -webkit-backdrop-filter: blur(var(--rp-nav-blur));
+  border: var(--rp-border-width) solid var(--rp-nav-border);
+  border-radius: var(--rp-nav-radius);
+  box-shadow: var(--rp-shadow-surface);
+}
+
+/* 3. 药丸按钮动效 */
+.btn-pill {
+  border-radius: var(--rp-radius-full);
+  padding: var(--rp-button-padding);
+  font-size: var(--rp-button-font-size);
+  font-weight: var(--rp-button-font-weight);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rp-space-2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.btn-pill:hover {
+  transform: translateY(-1px);
+}
+
+.btn-pill:active {
+  transform: translateY(0);
+}
+
+/* 柔蓝主药丸 */
+.btn-pill-blue {
+  background-color: var(--rp-action-primary-bg);
+  color: var(--rp-action-primary-fg);
+  border: 1px solid transparent;
+}
+.btn-pill-blue:hover:not(:disabled) {
+  background-color: var(--rp-action-primary-bg-hover);
+}
+
+/* 白色次级药丸 */
+.btn-pill-white {
+  background-color: var(--rp-bg-surface);
+  color: var(--rp-text-primary);
+  border: var(--rp-border-width) solid var(--rp-border-default);
+}
+.btn-pill-white:hover:not(:disabled) {
+  background-color: var(--rp-bg-field);
+  border-color: var(--rp-border-hover);
+}
+
+/* 4. 减少动效偏好回退 (prefers-reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .btn-pill:hover {
+    transform: none !important;
+  }
+}

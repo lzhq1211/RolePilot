@@ -1,0 +1,12 @@
+{
+  "decision": "STOP_UNSUPPORTED",
+  "confidence": 0.31,
+  "missingEvidence": [
+    "Timeline does not contain healthcare compliance or FDA submission experience."
+  ],
+  "blockingQuestions": [],
+  "unsupportedTargets": [
+    "Do not write the resume as a healthcare compliance lead."
+  ],
+  "safeWritingScope": []
+}

@@ -1,0 +1,24 @@
+{
+  "cases": [
+    {
+      "name": "default falls back to manual",
+      "env": {},
+      "expectedMode": "manual"
+    },
+    {
+      "name": "CI resolves local-ci",
+      "env": {
+        "CI": "true"
+      },
+      "expectedMode": "local-ci"
+    },
+    {
+      "name": "GitHub Actions overrides generic CI",
+      "env": {
+        "GITHUB_ACTIONS": "true",
+        "CI": "true"
+      },
+      "expectedMode": "github-actions"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "platform-contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "scripts": {
+    "check": "node --check ./src/index.mjs && node --check ./scripts/run-tests.mjs && node --check ../../tests/contracts/migration-contract.test.mjs && node --check ../../tests/contracts/contract-drift.test.mjs",
+    "test": "node ./scripts/run-tests.mjs"
+  }
+}

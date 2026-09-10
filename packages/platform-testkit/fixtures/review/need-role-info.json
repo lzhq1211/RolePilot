@@ -1,0 +1,76 @@
+{
+  "industryRoleCheck": {
+    "passed": false,
+    "industry": "候选方向不明",
+    "role": "岗位目标缺失",
+    "blockingIssue": "缺少明确目标岗位或 JD，无法判断应按 AI 运营、算法工程还是通用后端标准审核。"
+  },
+  "scores": {
+    "atsCompatibility": 1,
+    "quantification": 1,
+    "jdMatch": 0,
+    "conciseness": 4,
+    "professionalism": 4
+  },
+  "globalFiveDimension": {
+    "performanceQuantification": 2,
+    "skillMatch": 1,
+    "descriptionAccuracy": 4,
+    "logicCorrectness": 5,
+    "standardCompliance": 4,
+    "total": 16,
+    "skillMatchComment": "根据知识库中的行业标准，缺少目标岗位上下文时，任何技能匹配判断都会失真。",
+    "standardComplianceComment": "根据知识库中的行业标准，审核前必须先锁定岗位方向，否则结论不具备可执行性。"
+  },
+  "overall": {
+    "average": 2,
+    "pass": false,
+    "verdict": "NEED_ROLE_INFO"
+  },
+  "moduleReviews": [
+    {
+      "module": "summary",
+      "originalText": "候选人经验横跨技术支持、算法项目与设备交付，但未说明目标岗位。",
+      "issueAnalysis": {
+        "severity": "blocking",
+        "issue": "无法判断应按哪个岗位标准评估简历。",
+        "whyItMatters": "没有目标岗位会让所有修改建议偏离投递目标。",
+        "safeRevisionPrinciple": "先补岗位或 JD，再进行任何针对性改写。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，简历审核必须基于明确岗位目标，而不是泛化判断。"
+      },
+      "diagnosticScore": 2,
+      "reconstructionDemo": "请先提供目标岗位或 JD，再决定摘要如何聚焦。"
+    },
+    {
+      "module": "work",
+      "originalText": "经历同时覆盖 AI 运营、设备交付支持与深度学习项目。",
+      "issueAnalysis": {
+        "severity": "blocking",
+        "issue": "缺少主投方向，无法决定哪些经历该强化、哪些该降权。",
+        "whyItMatters": "会导致改写后的简历既不聚焦也不可信。",
+        "safeRevisionPrinciple": "先确认目标岗位，再选择保留或压缩的经历。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，经历取舍必须服务于明确岗位，而非平均铺陈。"
+      },
+      "diagnosticScore": 2,
+      "reconstructionDemo": "补充岗位方向后，再按目标岗位挑选最相关经历。"
+    }
+  ],
+  "missingAtsKeywords": ["目标岗位", "岗位职责"],
+  "sectionFeedback": [
+    {
+      "section": "summary",
+      "severity": "high",
+      "issue": "缺少目标岗位信息。",
+      "whyItMatters": "会让审核建议失去针对性。",
+      "suggestion": "先提供目标岗位名称或 JD。"
+    }
+  ],
+  "rewriteSuggestions": [],
+  "keepAsIs": ["保留已写明的客观经历事实，先不要盲目按单一岗位重写。"],
+  "evidenceGap": ["缺少目标岗位、JD 或主投方向说明。"],
+  "nextActions": [
+    "补充目标岗位名称。",
+    "提供对应 JD 或岗位职责摘要。",
+    "确认希望突出 AI 运营、技术支持还是算法项目方向。"
+  ]
+}

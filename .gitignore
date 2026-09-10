@@ -1,0 +1,65 @@
+node_modules/
+.pnpm-store/
+.state/
+.sisyphus/
+coverage/
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+supabase/.temp/
+supabase/migrations/
+.codex-*
+PROGRESS.md
+FRONTEND_PLAN.md
+STEP*_PLAN.md
+plan.md
+project-memory.md
+codemap.md
+**/codemap.md
+**/dist/
+.env
+.env.local
+.env.*.local
+
+# Local AI-agent state and private working notes
+.agents/
+.codex/
+.playwright-mcp/
+.trellis/.current-task
+.trellis/.developer
+.trellis/workspace/
+.claude/settings.local.json
+.claude/state/
+.claude/skills/
+skills-lock.json
+
+# Resume source material and extraction scratch files
+*.pdf
+resume-extract*.txt
+.rolepilot-acceptance/
+.rolepilot-work/
+.rolepilot-data/
+
+# Local architecture diagram sources, previews, and visual checks
+/rolepilot-architecture.*
+
+# Archived local development plans, audits, and retired build outputs
+/.rolepilot-private/
+
+# Environment files
+.env.*
+!.env.example
+
+# Framework / deployment outputs
+.next/
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# IDE
+.idea/
+.vscode/

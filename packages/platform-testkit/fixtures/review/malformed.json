@@ -1,0 +1,15 @@
+{
+  "industryRoleCheck": {
+    "passed": true,
+    "industry": "AI 平台 / 生成式 AI 产品",
+    "role": "AI 运营 / AI 技术支持工程师",
+    "blockingIssue": ""
+  },
+  "overall": {
+    "average": 7.6,
+    "pass": true,
+    "verdict": "PASS"
+  },
+  "nextActions": [
+    "这份 fixture 故意缺少 JSON 结尾"
+  ]

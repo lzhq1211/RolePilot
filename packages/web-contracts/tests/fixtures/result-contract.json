@@ -1,0 +1,31 @@
+{
+  "runId": "run-result-1",
+  "availability": "READY",
+  "resume": {
+    "schemaVersion": "v1",
+    "name": "Candidate",
+    "contact": [{"label": "email", "value": "candidate@example.com"}],
+    "summary": "Evidence-backed product leader.",
+    "sections": [{
+      "id": "work",
+      "title": "Work Experience",
+      "entries": [{"id": "work-1", "title": "RolePilot", "date": "2024-01 - 2026-01", "location": null, "bullets": ["Built a bounded workflow."]}]
+    }]
+  },
+  "originalResume": {
+    "schemaVersion": "v1",
+    "name": "Candidate",
+    "contact": [{"label": "email", "value": "candidate@example.com"}],
+    "summary": "Product leader.",
+    "sections": [{
+      "id": "work",
+      "title": "Work Experience",
+      "entries": [{"id": "work-1", "title": "RolePilot", "date": "2024-01 - 2026-01", "location": null, "bullets": ["Built a workflow."]}]
+    }]
+  },
+  "diffStatus": "READY",
+  "diff": [{"id": "work:work-1", "sectionId": "work", "kind": "changed", "before": "Built a workflow.", "after": "Built a bounded workflow."}],
+  "preflight": {"decision": "PROCEED", "safeWritingScope": ["work bullets"]},
+  "actionHistory": [{"sequence": 1, "action": "PASS", "target": null, "reason": "Evidence supports the result.", "evidenceRefs": [], "risk": "low", "routerResult": "allowed", "reviewImproved": null}],
+  "stopReason": "pass"
+}

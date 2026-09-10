@@ -1,0 +1,199 @@
+{
+  "cases": [
+    {
+      "name": "improving-then-pass",
+      "maxRounds": 3,
+      "rounds": [
+        {
+          "average": 6.2,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 1,
+          "highSectionFeedback": 1,
+          "missingAtsKeywords": 2,
+          "evidenceGap": 2,
+          "globalTotal": 62,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.4,
+          "pass": true,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 0,
+          "highSectionFeedback": 0,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 80,
+          "expectedBestResumePath": "draft-r2.yml",
+          "expectedBestReviewPath": "review-r2.json",
+          "expectedStopReason": "pass"
+        }
+      ]
+    },
+    {
+      "name": "role-mismatch-early-stop",
+      "maxRounds": 3,
+      "rounds": [
+        {
+          "average": 7.8,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 1,
+          "highSectionFeedback": 0,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 74,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 8.4,
+          "pass": false,
+          "industryRolePassed": false,
+          "blockingIssue": "Need verified target-role evidence.",
+          "blockingModuleReviews": 1,
+          "importantModuleReviews": 1,
+          "highSectionFeedback": 1,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 84,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        }
+      ]
+    },
+    {
+      "name": "severity-regression-early-stop",
+      "maxRounds": 3,
+      "rounds": [
+        {
+          "average": 7.1,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 0,
+          "highSectionFeedback": 0,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 72,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.9,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 2,
+          "highSectionFeedback": 1,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 86,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.8,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 2,
+          "highSectionFeedback": 1,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 86,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": "early-stop"
+        }
+      ]
+    },
+    {
+      "name": "gap-regression-early-stop",
+      "maxRounds": 3,
+      "rounds": [
+        {
+          "average": 7,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 1,
+          "highSectionFeedback": 0,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 73,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.8,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 1,
+          "highSectionFeedback": 0,
+          "missingAtsKeywords": 3,
+          "evidenceGap": 3,
+          "globalTotal": 88,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        }
+      ]
+    },
+    {
+      "name": "max-rounds-prefers-higher-total-before-average",
+      "maxRounds": 2,
+      "rounds": [
+        {
+          "average": 6.8,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 1,
+          "highSectionFeedback": 0,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 72,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.2,
+          "pass": false,
+          "industryRolePassed": true,
+          "blockingIssue": "",
+          "blockingModuleReviews": 0,
+          "importantModuleReviews": 1,
+          "highSectionFeedback": 0,
+          "missingAtsKeywords": 1,
+          "evidenceGap": 1,
+          "globalTotal": 78,
+          "expectedBestResumePath": "draft-r2.yml",
+          "expectedBestReviewPath": "review-r2.json",
+          "expectedStopReason": "max-rounds"
+        }
+      ]
+    }
+  ]
+}

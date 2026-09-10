@@ -1,0 +1,45 @@
+locale:
+  language: en
+layouts:
+  - engine: latex
+    sections:
+      aliases:
+        basics: Basics
+        education: Education
+        work: Work Experience
+        skills: Skills
+        projects: Projects
+      order:
+        - basics
+        - education
+        - work
+        - skills
+        - projects
+content:
+  basics:
+    name: Integration Candidate
+    email: integration@example.com
+    summary: Deterministic CLI coverage baseline.
+  education:
+    - institution: Fixture University
+      area: Computer Science
+      degree: BS
+      startDate: 2018-09
+      endDate: 2022-06
+  work:
+    - company: Fixture Labs
+      position: Platform Engineer
+      startDate: 2023-01
+      endDate: 2024-12
+      summary: Improved orchestrated CLI testing with deterministic stubs.
+  skills:
+    - name: Languages
+      keywords:
+        - JavaScript
+        - Node.js
+        - Testing
+  projects:
+    - name: Offline CLI Harness
+      startDate: 2024-01
+      endDate: 2024-06
+      summary: Built an offline integration harness for orchestration flows.

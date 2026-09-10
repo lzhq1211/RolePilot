@@ -1,0 +1,81 @@
+{
+  "industryRoleCheck": {
+    "passed": true,
+    "industry": "AI 平台 / 大模型服务",
+    "role": "AI 运营 / AI 技术支持工程师",
+    "blockingIssue": ""
+  },
+  "scores": {
+    "atsCompatibility": 7,
+    "quantification": 6,
+    "jdMatch": 8,
+    "conciseness": 6,
+    "professionalism": 6
+  },
+  "globalFiveDimension": {
+    "performanceQuantification": 12,
+    "skillMatch": 16,
+    "descriptionAccuracy": 11,
+    "logicCorrectness": 10,
+    "standardCompliance": 11,
+    "total": 60,
+    "skillMatchComment": "根据知识库中的行业标准，这份简历在岗位关键词覆盖上是对路的。",
+    "standardComplianceComment": "根据知识库中的行业标准，这份简历的模块结构基本可读。",
+    "eliminationWarning": "如果直接投递，大概率会在筛选前 25 秒内被淘汰。"
+  },
+  "overall": {
+    "average": 6.6,
+    "pass": false,
+    "verdict": "REVISE"
+  },
+  "moduleReviews": [
+    {
+      "module": "summary",
+      "originalText": "AI 平台运营与开发者 API 技术支持方向。",
+      "ruthlessDissection": {
+        "fatalFlaw": "这是遗留字段。",
+        "soulQuestions": ["为什么存在这个字段？"],
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，这个字段不应继续存在。"
+      },
+      "diagnosticScore": 5,
+      "reconstructionDemo": "删除遗留字段。"
+    },
+    {
+      "module": "work",
+      "originalText": "主导模型迁移。",
+      "issueAnalysis": {
+        "severity": "important",
+        "issue": "这里保留 canonical 字段，确保测试只聚焦 legacy drift。",
+        "whyItMatters": "需要验证显式 legacy-field rejection。",
+        "safeRevisionPrinciple": "不新增事实。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，runtime contract 只接受 issueAnalysis。"
+      },
+      "diagnosticScore": 7,
+      "reconstructionDemo": "保留 canonical 字段。"
+    }
+  ],
+  "missingAtsKeywords": ["测试"],
+  "sectionFeedback": [
+    {
+      "section": "summary",
+      "severity": "high",
+      "issue": "遗留产物包含旧字段。",
+      "whyItMatters": "runtime contract 已冻结为 v1 canonical payload。",
+      "suggestion": "删除 ruthlessDissection 与 eliminationWarning。"
+    }
+  ],
+  "rewriteSuggestions": [
+    {
+      "section": "summary",
+      "before": "旧字段仍然存在。",
+      "after": "改用 issueAnalysis，并移除 eliminationWarning。"
+    }
+  ],
+  "keepAsIs": ["保留已验证的 canonical 顶层结构。"],
+  "evidenceGap": ["若要强化评论，需要补充新结构下的证据说明。"],
+  "nextActions": [
+    "删除 legacy 字段。",
+    "迁移到 issueAnalysis。",
+    "重新导出 canonical review payload。"
+  ]
+}

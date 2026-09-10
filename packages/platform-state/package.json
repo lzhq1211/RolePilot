@@ -1,0 +1,14 @@
+{
+  "name": "platform-state",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "check": "pnpm exec tsc --noEmit -p tsconfig.json",
+    "test": "node ../../scripts/run-package-tests.mjs"
+  }
+}

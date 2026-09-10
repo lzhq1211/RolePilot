@@ -1,0 +1,22 @@
+{
+  "name": "web-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./resume-document": {
+      "types": "./dist/resume-document.d.ts",
+      "import": "./dist/resume-document.js"
+    },
+    "./workbench": {
+      "types": "./src/workbench.ts",
+      "import": "./dist/workbench.js"
+    }
+  },
+  "scripts": {
+    "check": "pnpm exec tsc --noEmit -p tsconfig.json",
+    "test": "node ../../scripts/run-package-tests.mjs"
+  }
+}

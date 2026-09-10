@@ -1,0 +1,138 @@
+/* Print styles for PDF export */
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  #app.print-export-source-hidden {
+    display: none !important;
+  }
+
+  .print-export-copy {
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  #app {
+    display: block !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  #toolbar,
+  #privacy-notice,
+  #status-region,
+  #dialog-root,
+  .toast-container,
+  #resume-list-panel {
+    display: none !important;
+  }
+
+  #workspace {
+    padding: 0;
+    width: 210mm;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    grid-area: unset;
+    display: block;
+  }
+
+  #resume-page {
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    box-shadow: none;
+    overflow: hidden;
+    page-break-after: avoid;
+  }
+
+  body > .print-export-copy {
+    display: block !important;
+  }
+
+  .no-print,
+  .btn-del-bullet,
+  .btn-del-entry,
+  .btn-add-bullet,
+  .btn-add-entry,
+  .section-reorder-handle,
+  .entry-reorder-handle,
+  .bullet-add-row,
+  .entry-add-row {
+    display: none !important;
+  }
+
+  .resume-section::after,
+  #header-info::after {
+    display: none !important;
+  }
+
+  [contenteditable] {
+    background: none !important;
+    cursor: default;
+  }
+
+  .editable-placeholder[data-empty="true"]::after {
+    display: none;
+  }
+
+  [data-empty="true"]::before {
+    display: none;
+  }
+
+  #photo-container[data-empty="true"]::after {
+    display: none !important;
+  }
+
+  #resume-page[data-theme] #photo-container[data-empty="true"] {
+    border: 0 !important;
+  }
+
+  #resume-page[data-theme] #photo-container {
+    right: calc(0mm - var(--photo-frame-offset-x)) !important;
+    top: calc(3mm + var(--photo-frame-offset-y)) !important;
+    transform: none !important;
+  }
+
+  #resume-page[data-theme].photo-print-prepared #resume-header {
+    position: static !important;
+  }
+
+  #resume-page[data-theme].photo-print-prepared #photo-container {
+    left: var(--photo-print-x) !important;
+    top: var(--photo-print-y) !important;
+    right: auto !important;
+    width: var(--photo-print-w) !important;
+    height: var(--photo-print-h) !important;
+  }
+
+  #resume-page[data-theme] #photo-container img {
+    width: 100% !important;
+    height: auto !important;
+    transform: translate(
+      var(--photo-image-offset-x, 0mm),
+      var(--photo-image-offset-y, 0mm)
+    ) scale(var(--photo-image-scale, 1)) !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}

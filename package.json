@@ -1,0 +1,24 @@
+{
+  "name": "rolepilot",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "prepare": "node ./scripts/build-workspace.mjs",
+    "build": "node ./scripts/build-workspace.mjs",
+    "dev": "pnpm --filter rolepilot-web dev",
+    "check": "node ./scripts/run-workspace-command.mjs check",
+    "check:workspace": "node ./scripts/run-workspace-command.mjs check",
+    "test": "node ./scripts/run-workspace-command.mjs test",
+    "test:workspace": "node ./scripts/run-workspace-command.mjs test",
+    "web:acceptance": "node scripts/web-acceptance/run.mjs serve",
+    "web:acceptance:clean": "node scripts/web-acceptance/run.mjs clean",
+    "test:web:db": "node scripts/web-acceptance/run.mjs db",
+    "test:web:integration": "node scripts/web-acceptance/run.mjs integration",
+    "test:web:e2e": "node scripts/web-acceptance/run.mjs e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^24.4.0",
+    "typescript": "~5.9.3"
+  }
+}

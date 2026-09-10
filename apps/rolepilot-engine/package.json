@@ -1,0 +1,28 @@
+{
+  "name": "rolepilot-engine",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "rolepilot-engine": "./dist/cli.js"
+  },
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "check": "pnpm exec tsc --noEmit -p tsconfig.json",
+    "test": "node ../../scripts/run-package-tests.mjs",
+    "test:ci": "node ../../scripts/run-package-tests.mjs --ci"
+  },
+  "dependencies": {
+    "web-contracts": "workspace:*",
+    "platform-adapters": "workspace:*",
+    "platform-contracts": "workspace:*",
+    "platform-policy": "workspace:*",
+    "platform-runtime": "workspace:*",
+    "platform-state": "workspace:*",
+    "platform-testkit": "workspace:*",
+    "yaml": "^2.8.3"
+  }
+}

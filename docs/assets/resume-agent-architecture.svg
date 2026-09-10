@@ -1,0 +1,72 @@
+<svg width="960" height="520" viewBox="0 0 960 520" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">RolePilot architecture</title>
+  <desc id="desc">Architecture diagram showing rolepilot-engine orchestrating mine, write, review, and interview through contracts, adapters, policy, runtime, state, and testkit packages.</desc>
+  <rect width="960" height="520" rx="28" fill="#F7FAFC"/>
+  <rect x="24" y="24" width="912" height="472" rx="24" fill="white" stroke="#D8E2EC" stroke-width="2"/>
+
+  <text x="56" y="70" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#172033">Resume Agent Platform</text>
+  <text x="56" y="98" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" fill="#526071">Local-first, replay-first, offline-safe resume workflow</text>
+
+  <rect x="56" y="130" width="848" height="88" rx="18" fill="#EAF4FF" stroke="#9BC7F5"/>
+  <text x="86" y="164" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#164B7A">apps/rolepilot-engine</text>
+  <text x="86" y="190" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" fill="#35536E">CLI, config, workflow assembly, status output, artifact shaping</text>
+
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <rect x="82" y="262" width="142" height="70" rx="16" fill="#FFF6DB" stroke="#F0C75E"/>
+    <text x="153" y="291" text-anchor="middle" font-size="18" font-weight="700" fill="#6A4B00">mine</text>
+    <text x="153" y="313" text-anchor="middle" font-size="12" fill="#755B18">timeline</text>
+
+    <rect x="288" y="262" width="142" height="70" rx="16" fill="#E9F8EF" stroke="#8AD1A0"/>
+    <text x="359" y="291" text-anchor="middle" font-size="18" font-weight="700" fill="#1D5B34">write</text>
+    <text x="359" y="313" text-anchor="middle" font-size="12" fill="#35704B">resume draft</text>
+
+    <rect x="494" y="262" width="142" height="70" rx="16" fill="#FFF0F0" stroke="#E9A1A1"/>
+    <text x="565" y="291" text-anchor="middle" font-size="18" font-weight="700" fill="#7A2525">review</text>
+    <text x="565" y="313" text-anchor="middle" font-size="12" fill="#8B4545">quality gate</text>
+
+    <rect x="700" y="262" width="142" height="70" rx="16" fill="#F2EFFF" stroke="#B7A8F5"/>
+    <text x="771" y="291" text-anchor="middle" font-size="18" font-weight="700" fill="#453080">interview</text>
+    <text x="771" y="313" text-anchor="middle" font-size="12" fill="#5D4C92">prep + cheatsheet</text>
+  </g>
+
+  <path d="M224 297H288" stroke="#708090" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M430 297H494" stroke="#708090" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M636 297H700" stroke="#708090" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M278 297L288 291V303L278 297Z" fill="#708090"/>
+  <path d="M484 297L494 291V303L484 297Z" fill="#708090"/>
+  <path d="M690 297L700 291V303L690 297Z" fill="#708090"/>
+
+  <path d="M565 332C565 366 359 366 359 332" stroke="#C26868" stroke-width="2.5" stroke-dasharray="6 6"/>
+  <path d="M349 332L359 326V338L349 332Z" fill="#C26868"/>
+  <text x="462" y="386" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" fill="#8B4545">bounded review loop</text>
+
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <rect x="74" y="420" width="118" height="42" rx="12" fill="#F8FAFC" stroke="#CBD5E1"/>
+    <text x="133" y="446" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">contracts</text>
+
+    <rect x="214" y="420" width="118" height="42" rx="12" fill="#F8FAFC" stroke="#CBD5E1"/>
+    <text x="273" y="446" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">adapters</text>
+
+    <rect x="354" y="420" width="118" height="42" rx="12" fill="#F8FAFC" stroke="#CBD5E1"/>
+    <text x="413" y="446" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">policy</text>
+
+    <rect x="494" y="420" width="118" height="42" rx="12" fill="#F8FAFC" stroke="#CBD5E1"/>
+    <text x="553" y="446" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">runtime</text>
+
+    <rect x="634" y="420" width="118" height="42" rx="12" fill="#F8FAFC" stroke="#CBD5E1"/>
+    <text x="693" y="446" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">state</text>
+
+    <rect x="774" y="420" width="118" height="42" rx="12" fill="#F8FAFC" stroke="#CBD5E1"/>
+    <text x="833" y="446" text-anchor="middle" font-size="13" font-weight="700" fill="#334155">testkit</text>
+  </g>
+
+  <path d="M480 218V248" stroke="#708090" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M480 258L474 248H486L480 258Z" fill="#708090"/>
+  <path d="M480 394V420" stroke="#708090" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M480 394H133V420" stroke="#CBD5E1" stroke-width="2"/>
+  <path d="M480 394H273V420" stroke="#CBD5E1" stroke-width="2"/>
+  <path d="M480 394H413V420" stroke="#CBD5E1" stroke-width="2"/>
+  <path d="M480 394H553V420" stroke="#CBD5E1" stroke-width="2"/>
+  <path d="M480 394H693V420" stroke="#CBD5E1" stroke-width="2"/>
+  <path d="M480 394H833V420" stroke="#CBD5E1" stroke-width="2"/>
+</svg>

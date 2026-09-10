@@ -1,0 +1,90 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { config, session, until } from "./config.mjs";
+import { client } from "./client.mjs";
+
+const settings = await config();
+const saved = await session(settings, true);
+const { createInstance } = await import("./runtime.mjs");
+let a, b, api, other;
+const passed = [];
+try {
+  a = await createInstance(settings, saved);
+  b = await createInstance(settings, saved, "B");
+  api = client(await a.start()); other = client(await b.start());
+  const first = await api.create(a.fixture);
+  await api.wait(first.run.id, "COMPLETED");
+  await api.json(`/api/runs/${first.run.id}/result`);
+  await api.json(`/api/runs/${first.run.id}/workbench`);
+  await api.exportRetired(first.run.id);
+  const shared = await api.create(a.fixture, "W6 shared", first.source.id);
+  await api.wait(shared.run.id, "COMPLETED");
+  const isolated = await other.create(b.fixture);
+  await other.wait(isolated.run.id, "COMPLETED");
+  await other.request(`/api/runs/${first.run.id}`, "GET", undefined, {}, 404);
+  passed.push("真实运行、幂等、结果、工作台读取、导出退役、跨实例读取隔离");
+
+  a.failNextDelete(first.run.id);
+  await api.request(`/api/runs/${first.run.id}`, "DELETE", undefined, { "x-rolepilot-confirm": "DELETE_RUN" }, 202);
+  await a.cleanup.scan();
+  await until(() => a.cleanup.status(), (s) => s.failed > 0, "Storage 删除失败落库");
+  await a.stop(); a = await createInstance(settings, saved); api = client(await a.start());
+  assert.ok((await a.cleanup.status()).failed > 0);
+  await api.request("/api/maintenance/cleanup/retry", "POST", undefined, {}, 202);
+  await a.cleanup.scan();
+  await until(() => a.runs.get(first.run.id, { includeDeleted: true }), (r) => r === null, "重试物理清理");
+  assert.equal((await a.stores.artifacts.list(`instances/${a.instance}/runs/${first.run.id}/`)).length, 0);
+  await api.request(`/api/runs/${first.run.id}/workbench`, "GET", undefined, {}, 404);
+  await api.json(`/api/resume-sources/${first.source.id}`);
+  await api.json(`/api/runs/${shared.run.id}/result`);
+  passed.push("删除失败持久化、重启、手动重试、共享 Source 保留");
+
+  const evidence = await api.create(a.fixture, "W6 evidence");
+  await api.wait(evidence.run.id, "NEEDS_USER_INPUT");
+  await a.stop();
+  await fs.rm(path.join(a.workDir, "runs", evidence.run.id), { recursive: true, force: true });
+  a = await createInstance(settings, saved); api = client(await a.start());
+  await api.json(`/api/runs/${evidence.run.id}/evidence`, "POST", { evidenceText: a.fixture.evidenceText });
+  await api.wait(evidence.run.id, "COMPLETED");
+  passed.push("无本地目录重启后补证恢复同一 Run");
+
+  const cancelling = await api.create(a.fixture, "W6 cancel");
+  await api.wait(cancelling.run.id, "RUNNING");
+  await api.request("/api/instance-data", "DELETE", undefined, { "x-rolepilot-confirm": "DELETE_ALL" }, 409);
+  const queued = await api.create(a.fixture, "W6 queued");
+  assert.equal((await api.json(`/api/runs/${queued.run.id}`)).status, "QUEUED");
+  await api.json(`/api/runs/${queued.run.id}/cancel`, "POST");
+  await api.json(`/api/runs/${cancelling.run.id}/cancel`, "POST");
+  await until(() => Promise.resolve(a.gate.busy), (busy) => !busy, "取消执行收尾");
+  await api.wait(cancelling.run.id, "CANCELLED"); await api.wait(queued.run.id, "CANCELLED");
+  const stream = await (await api.request(`/api/runs/${cancelling.run.id}/events`)).text();
+  const ids = [...stream.matchAll(/^id:\s*(\d+)/gm)].map((m) => Number(m[1]));
+  assert.ok(ids.length > 0); assert.deepEqual(ids, [...new Set(ids)].sort((x, y) => x - y));
+  const cursor = ids[Math.floor(ids.length / 2)];
+  const replay = await (await api.request(`/api/runs/${cancelling.run.id}/events`, "GET", undefined, { "last-event-id": String(cursor) })).text();
+  assert.deepEqual([...replay.matchAll(/^id:\s*(\d+)/gm)].map((m) => Number(m[1])), ids.filter((id) => id > cursor));
+  a.gate.maintaining = true;
+  try { await api.request("/api/input-drafts", "POST", {}, {}, 409); } finally { a.gate.maintaining = false; }
+  passed.push("忙时清空拒绝、维护写入拒绝、queued/running 取消、SSE 游标补齐");
+  const orphanPrefix = `instances/${a.instance}/runs/${randomUUID()}/`;
+  const orphan = `${orphanPrefix}tmp/w6-orphan.txt`;
+  await a.stores.artifacts.put({ key: orphan, bytes: new TextEncoder().encode("fixture"), contentType: "text/plain" });
+  await a.cleanup.scan();
+  assert.equal((await a.stores.artifacts.list(orphanPrefix)).length, 1);
+  await a.stop();
+  a = await createInstance(settings, saved, "A", { now: () => new Date(Date.now() + 25 * 60 * 60 * 1000) });
+  api = client(await a.start());
+  assert.equal((await a.stores.artifacts.list(orphanPrefix)).length, 0);
+  await api.json(`/api/runs/${shared.run.id}/result`);
+  passed.push("24 小时 TTL 前保留孤立对象，过期清理不删除有效结果");
+  await api.clear();
+  await until(() => a.cleanup.status(), (s) => { assert.equal(s.failed, 0); return !s.maintaining && s.pending === 0; }, "A 清空");
+  await other.json(`/api/runs/${isolated.run.id}/result`);
+  passed.push("A 清空不影响 B 数据");
+  console.log(JSON.stringify({ passed }, null, 2));
+} finally {
+  await a?.stop(); await b?.stop();
+  console.log("验收 fixture 保留在当前 session；停止其他验收进程后运行 pnpm web:acceptance:clean。");
+}

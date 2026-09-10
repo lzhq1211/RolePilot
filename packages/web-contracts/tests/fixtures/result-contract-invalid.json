@@ -1,0 +1,11 @@
+{
+  "runId": "run-result-1",
+  "availability": "READY",
+  "resume": {"schemaVersion": "v1", "name": null, "contact": [], "summary": null, "sections": [], "absolutePath": "/tmp/private"},
+  "originalResume": null,
+  "diffStatus": "UNAVAILABLE",
+  "diff": [],
+  "preflight": null,
+  "actionHistory": [],
+  "stopReason": null
+}

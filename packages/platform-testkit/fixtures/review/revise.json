@@ -1,0 +1,82 @@
+{
+  "industryRoleCheck": {
+    "passed": true,
+    "industry": "AI 平台 / 生成式 AI 产品",
+    "role": "AI 运营 / AI 技术支持工程师",
+    "blockingIssue": ""
+  },
+  "scores": {
+    "atsCompatibility": 6,
+    "quantification": 5,
+    "jdMatch": 7,
+    "conciseness": 6,
+    "professionalism": 6
+  },
+  "globalFiveDimension": {
+    "performanceQuantification": 11,
+    "skillMatch": 14,
+    "descriptionAccuracy": 12,
+    "logicCorrectness": 12,
+    "standardCompliance": 11,
+    "total": 60,
+    "skillMatchComment": "根据知识库中的行业标准，这份简历对 AI 平台支持、文档维护与基础自动化已有匹配，但证据密度仍不足。",
+    "standardComplianceComment": "根据知识库中的行业标准，这份简历尚未达到直接投递水位，需要补强结果口径与模块排序。"
+  },
+  "overall": {
+    "average": 6.4,
+    "pass": false,
+    "verdict": "REVISE"
+  },
+  "moduleReviews": [
+    {
+      "module": "summary",
+      "originalText": "聚焦 AI 平台运营、开发者支持与文档维护。",
+      "issueAnalysis": {
+        "severity": "important",
+        "issue": "摘要只有岗位标签，缺少最强业务结果。",
+        "whyItMatters": "会削弱首屏判断效率。",
+        "safeRevisionPrinciple": "只前置已有量化结果，不新增未经证实的数据。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，摘要需要岗位标签与最强结果同时出现。"
+      },
+      "diagnosticScore": 6,
+      "reconstructionDemo": "可改写为：聚焦 AI 平台运营与开发者支持，1 个月完成 1000+ 模型重建并保持 98% 抽检准确率。"
+    },
+    {
+      "module": "work",
+      "originalText": "负责模型上架、API 支持与文档维护。",
+      "issueAnalysis": {
+        "severity": "important",
+        "issue": "经历只有职责，没有按业务价值排序。",
+        "whyItMatters": "会降低 JD 贴合度和可信度。",
+        "safeRevisionPrinciple": "只重排已存在事实，不补写新职责。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，经历描述应先写强相关动作和量化结果。"
+      },
+      "diagnosticScore": 6,
+      "reconstructionDemo": "可改写为：负责 AI 平台模型上架与 API 接入支持，并通过 Python 自动化压缩文档维护耗时。"
+    }
+  ],
+  "missingAtsKeywords": ["模型评测"],
+  "sectionFeedback": [
+    {
+      "section": "summary",
+      "severity": "high",
+      "issue": "摘要缺少最强结果与复杂场景。",
+      "whyItMatters": "会降低人工筛选通过率。",
+      "suggestion": "前置 1000+ 模型迁移与 98% 准确率。"
+    }
+  ],
+  "rewriteSuggestions": [
+    {
+      "section": "summary",
+      "before": "聚焦 AI 平台运营、开发者支持与文档维护。",
+      "after": "聚焦 AI 平台运营与开发者支持，完成 1000+ 模型迁移定价并处理高频 API 接入咨询。"
+    }
+  ],
+  "keepAsIs": ["保留模型迁移、API 咨询与文档提效这组已验证事实。"],
+  "evidenceGap": ["补充模型评测或行业动态跟踪证据后再强化相关表述。"],
+  "nextActions": [
+    "前置最强量化结果。",
+    "按模型运营、API 支持、文档自动化重排经历。",
+    "补充模型评测相关证据。"
+  ]
+}

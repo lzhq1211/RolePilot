@@ -1,0 +1,71 @@
+{
+  "cases": [
+    {
+      "name": "improving-then-pass",
+      "maxRounds": 3,
+      "rounds": [
+        {
+          "average": 6.2,
+          "pass": false,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.4,
+          "pass": true,
+          "expectedBestResumePath": "draft-r2.yml",
+          "expectedBestReviewPath": "review-r2.json",
+          "expectedStopReason": "pass"
+        }
+      ]
+    },
+    {
+      "name": "two-consecutive-non-improving-actions-early-stop",
+      "maxRounds": 3,
+      "rounds": [
+        {
+          "average": 8.1,
+          "pass": false,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.9,
+          "pass": false,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.9,
+          "pass": false,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": "early-stop"
+        }
+      ]
+    },
+    {
+      "name": "max-rounds-selects-best",
+      "maxRounds": 2,
+      "rounds": [
+        {
+          "average": 6.8,
+          "pass": false,
+          "expectedBestResumePath": "draft-r1.yml",
+          "expectedBestReviewPath": "review-r1.json",
+          "expectedStopReason": null
+        },
+        {
+          "average": 7.3,
+          "pass": false,
+          "expectedBestResumePath": "draft-r2.yml",
+          "expectedBestReviewPath": "review-r2.json",
+          "expectedStopReason": "max-rounds"
+        }
+      ]
+    }
+  ]
+}

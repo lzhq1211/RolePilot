@@ -1,0 +1,84 @@
+{
+  "industryRoleCheck": {
+    "passed": true,
+    "industry": "AI 平台 / 生成式 AI 产品",
+    "role": "AI 运营 / AI 技术支持工程师",
+    "blockingIssue": ""
+  },
+  "scores": {
+    "atsCompatibility": 8,
+    "quantification": 7,
+    "jdMatch": 8,
+    "conciseness": 7,
+    "professionalism": 8
+  },
+  "globalFiveDimension": {
+    "performanceQuantification": 15,
+    "skillMatch": 17,
+    "descriptionAccuracy": 16,
+    "logicCorrectness": 16,
+    "standardCompliance": 16,
+    "total": 80,
+    "skillMatchComment": "根据知识库中的行业标准，这份简历已经覆盖 AI 平台运营、API 接入支持与文档维护等核心能力。",
+    "standardComplianceComment": "根据知识库中的行业标准，这份简历结构清晰、证据边界保守，已达到可投递水位。"
+  },
+  "overall": {
+    "average": 7.6,
+    "pass": true,
+    "verdict": "PASS"
+  },
+  "moduleReviews": [
+    {
+      "module": "summary",
+      "originalText": "聚焦 AI 平台运营与开发者 API 技术支持，覆盖模型上架定价、API 排障、文档维护与 Python 自动化。",
+      "issueAnalysis": {
+        "severity": "polish",
+        "issue": "摘要已经对齐岗位，但仍可进一步前置最强量化结果。",
+        "whyItMatters": "首屏判断依赖最强证据是否足够快被识别。",
+        "safeRevisionPrinciple": "只重排已有数字，不新增新的结果口径。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，优秀摘要会把岗位标签和最强业务结果一起前置。"
+      },
+      "diagnosticScore": 8,
+      "reconstructionDemo": "可改写为：聚焦 AI 平台运营与开发者 API 技术支持，负责模型上架定价、接入排障与文档自动化，并以量化结果前置核心证据。"
+    },
+    {
+      "module": "广州星维互动网络技术有限公司｜AI 技术支持 / AI 运营",
+      "originalText": "1 个月内完成 1000+ 模型价格重建，抽检准确率 98%；日均处理约 55 条 API 接入咨询；使用 Python 将文档全量更新时间从 3 小时缩短至 1.5 小时。",
+      "issueAnalysis": {
+        "severity": "important",
+        "issue": "核心经历已强相关，但运营、支持与自动化仍可按业务价值再排序。",
+        "whyItMatters": "排序优化会直接提升 JD 贴合度识别效率。",
+        "safeRevisionPrinciple": "只重排已有事实，不扩写未证实的系统开发职责。",
+        "knowledgeBaseAlignment": "根据知识库中的行业标准，最强岗位相关动作与量化结果应优先出现。"
+      },
+      "diagnosticScore": 8,
+      "reconstructionDemo": "可改写为：负责 AI 平台模型上架与定价迁移，1 个月内完成 1000+ 模型价格重建并保持 98% 抽检准确率；同时处理 API 接入问题并用 Python 压缩文档更新时间。"
+    }
+  ],
+  "missingAtsKeywords": ["行业动态"],
+  "sectionFeedback": [
+    {
+      "section": "summary",
+      "severity": "medium",
+      "issue": "最强结果还不够前置。",
+      "whyItMatters": "会降低首屏识别效率。",
+      "suggestion": "把 1000+ 模型与 98% 准确率提前到摘要前两句。"
+    }
+  ],
+  "rewriteSuggestions": [
+    {
+      "section": "work",
+      "before": "负责模型上架、API 支持与文档维护。",
+      "after": "负责 AI 平台模型上架定价、API 接入支持与文档自动化维护。"
+    }
+  ],
+  "keepAsIs": [
+    "保留 1000+ 模型价格重建、98% 抽检准确率、55 条日均咨询与文档提效这组核心量化证据。"
+  ],
+  "evidenceGap": ["若要强化行业动态跟踪能力，需要补充模型评测或输出记录。"],
+  "nextActions": [
+    "把最强量化结果前置到摘要前两句。",
+    "按模型运营、API 支持、文档自动化的顺序重排核心经历。",
+    "对行业动态相关表述保持保守表达，补充证据后再强化。"
+  ]
+}

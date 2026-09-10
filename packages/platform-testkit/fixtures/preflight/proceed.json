@@ -1,0 +1,10 @@
+{
+  "decision": "PROCEED",
+  "confidence": 0.92,
+  "missingEvidence": [],
+  "blockingQuestions": [],
+  "unsupportedTargets": [],
+  "safeWritingScope": [
+    "Emphasize platform orchestration, deterministic replay, and offline CI evidence from the timeline."
+  ]
+}

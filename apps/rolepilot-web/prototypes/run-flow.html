@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RolePilot · 运行流线原型</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#718096; --line:#dfe6ee; --blue:#356da8; --blue-soft:#e9f2fb; --paper:#fbfcfe; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; color:var(--ink); background:linear-gradient(135deg,#f7fafc 0%,#fff 52%,#eef5fb 100%); font-family: ui-sans-serif,system-ui,-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif; }
+    main { width:min(920px,calc(100% - 40px)); margin:0 auto; padding:72px 0 64px; }
+    .eyebrow { margin:0 0 14px; color:var(--blue); font-size:12px; font-weight:800; letter-spacing:.2em; }
+    h1 { margin:0; font-size:clamp(42px,8vw,78px); letter-spacing:-.07em; line-height:.98; }
+    .subtitle { margin:22px 0 0; color:#526278; font-size:18px; }
+    .rail { position:relative; margin:78px 0 34px; padding:0 8px; }
+    .rail::before { content:""; position:absolute; top:22px; left:10px; right:10px; height:2px; background:var(--line); }
+    .rail-fill { position:absolute; top:22px; left:10px; height:2px; width:53%; background:var(--blue); transition:width .5s ease; }
+    .steps { position:relative; display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+    .step { border:0; padding:0; background:transparent; color:var(--muted); text-align:left; cursor:pointer; }
+    .dot { display:grid; place-items:center; width:46px; height:46px; border:2px solid var(--line); border-radius:50%; background:var(--paper); color:var(--muted); font-size:14px; font-weight:700; transition:.3s ease; }
+    .step strong { display:block; margin-top:14px; font-size:16px; color:inherit; }
+    .gradient-text { background:linear-gradient(90deg,#5430e2 0%,#FF9FFC 25%,#B497CF 50%,#5430e2 75%,#FF9FFC 100%); background-size:300% auto; background-position:0 center; -webkit-background-clip:text; background-clip:text; color:transparent; animation:gradient-shift 3s linear infinite; }
+    .step.active .gradient-text { filter:drop-shadow(0 0 10px rgba(255,159,252,.35)); }
+    @keyframes gradient-shift { from { background-position:0 center; } to { background-position:300% center; } }
+    .step small { display:block; margin-top:5px; color:inherit; font-size:12px; line-height:1.4; }
+    .step.done,.step.active { color:var(--ink); } .step.done .dot { border-color:var(--blue); background:var(--blue); color:#fff; } .step.active .dot { border-color:var(--blue); background:var(--blue-soft); color:var(--blue); box-shadow:0 0 0 7px rgba(53,109,168,.1); }
+    .card { margin-top:56px; padding:32px; border:1px solid rgba(211,222,233,.9); border-radius:28px; background:rgba(255,255,255,.78); box-shadow:0 24px 70px rgba(53,77,102,.1); }
+    .card-label { margin:0 0 10px; color:var(--blue); font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    .card h2 { margin:0; font-size:clamp(24px,4vw,36px); letter-spacing:-.04em; }
+    .card p { margin:14px 0 0; color:#5b6b80; line-height:1.7; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:28px; }
+    button.action { border:0; border-radius:999px; padding:12px 18px; background:var(--blue); color:#fff; font:inherit; cursor:pointer; } button.secondary { background:#edf1f5; color:#45566d; }
+    .note { margin-top:22px; color:#7b8798; font-size:12px; }
+    @media (max-width:620px) { main{width:min(100% - 28px,920px);padding-top:44px}.rail{margin-top:56px;overflow:auto;padding-bottom:10px}.steps{min-width:680px}.card{padding:24px;border-radius:22px} }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">RUN / FLOW</p>
+    <h1>字节跳动</h1>
+    <p class="subtitle">AI 产品经理 · 让每一步都有迹可循</p>
+    <section class="rail" aria-label="运行进度">
+      <div class="rail-fill" id="railFill"></div>
+      <div class="steps" id="steps"></div>
+    </section>
+    <section class="card" aria-live="polite">
+      <p class="card-label" id="cardLabel">正在进行</p>
+      <h2 id="cardTitle">正在寻迹</h2>
+      <p id="cardBody">把经历里的线索捋清楚，确认接下来可以使用的事实。</p>
+      <div class="actions"><button class="action" id="next">推进一步</button><button class="action secondary" id="wait">模拟补充</button></div>
+      <p class="note">原型：失败状态保持现有表达；“补充”作为暂停等待状态单独呈现。</p>
+    </section>
+  </main>
+  <script>
+    const items = [
+      ["启程", "准备开始", "等待运行启动"],
+      ["寻迹", "整理线索", "把经历里的线索捋清楚"],
+      ["对焦", "锁定重点", "对准这个岗位真正看重的部分"],
+      ["织稿", "组织成稿", "把事实织成更有力量的简历"],
+      ["成稿", "这一程已走完", "成稿已落定，可以继续排版"]
+    ];
+    let current = 1, waiting = false;
+    const steps = document.querySelector('#steps'), fill = document.querySelector('#railFill');
+    const label = document.querySelector('#cardLabel'), title = document.querySelector('#cardTitle'), body = document.querySelector('#cardBody');
+    function render() {
+      steps.innerHTML = items.map((item, i) => `<button class="step ${i < current ? 'done' : ''} ${i === current ? 'active' : ''}" data-index="${i}"><span class="dot">${i < current ? '✓' : String(i + 1).padStart(2,'0')}</span><strong class="gradient-text">${item[0]}</strong><small>${i === current && waiting ? '等待补充' : item[1]}</small></button>`).join('');
+      fill.style.width = `${Math.max(0, current / (items.length - 1) * 100)}%`;
+      const item = items[current]; label.textContent = waiting ? '等待补充' : current === items.length - 1 ? '已完成' : '正在进行'; title.textContent = waiting ? '前面有一处空白，等你补上一笔' : (current === items.length - 1 ? '成稿已落定' : `正在${item[0]}`); body.textContent = waiting ? '补充后会从当前步骤继续推进。' : item[2];
+      document.querySelectorAll('.step').forEach(el => el.onclick = () => { current = Number(el.dataset.index); waiting = false; render(); });
+    }
+    document.querySelector('#next').onclick = () => { waiting = false; current = Math.min(items.length - 1, current + 1); render(); };
+    document.querySelector('#wait').onclick = () => { waiting = !waiting; render(); };
+    render();
+  </script>
+</body>
+</html>

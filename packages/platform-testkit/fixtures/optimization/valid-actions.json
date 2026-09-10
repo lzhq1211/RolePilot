@@ -1,0 +1,81 @@
+{
+  "cases": [
+    {
+      "name": "pass",
+      "decision": {
+        "action": "PASS",
+        "target": null,
+        "reason": "The current resume satisfies the review gate.",
+        "evidenceRefs": [],
+        "expectedImprovement": "No further change is required.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "ask-user",
+      "decision": {
+        "action": "ASK_USER",
+        "target": "Which verified project result supports the target-role claim?",
+        "reason": "The review found a blocking evidence gap.",
+        "evidenceRefs": ["review.evidenceGap[0]"],
+        "expectedImprovement": "User evidence can unlock a safe revision.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "rewrite-section",
+      "decision": {
+        "action": "REWRITE_SECTION",
+        "target": "content.basics.summary",
+        "reason": "The supported achievements are not prioritized clearly.",
+        "evidenceRefs": ["timeline.content.work[0].summary"],
+        "expectedImprovement": "Improve clarity without adding facts.",
+        "risk": "medium"
+      }
+    },
+    {
+      "name": "keyword-optimize",
+      "decision": {
+        "action": "KEYWORD_OPTIMIZE",
+        "target": "content.skills",
+        "reason": "A supported JD keyword is expressed inconsistently.",
+        "evidenceRefs": ["timeline.content.skills[0]", "timeline.content.work[0].summary"],
+        "expectedImprovement": "Improve ATS alignment using existing evidence.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "drop-unsupported-claim",
+      "decision": {
+        "action": "DROP_UNSUPPORTED_CLAIM",
+        "target": "content.basics.summary: industry-leading model evaluation",
+        "reason": "The claim is absent from the source timeline.",
+        "evidenceRefs": ["review.evidenceGap[0]"],
+        "expectedImprovement": "Remove an unsupported claim.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "reorder",
+      "decision": {
+        "action": "REORDER",
+        "target": "content.work",
+        "reason": "The strongest relevant experience should appear first.",
+        "evidenceRefs": ["review.nextActions[0]"],
+        "expectedImprovement": "Improve relevance without changing facts.",
+        "risk": "low"
+      }
+    },
+    {
+      "name": "stop",
+      "decision": {
+        "action": "STOP",
+        "target": null,
+        "reason": "Further changes are not expected to improve the resume safely.",
+        "evidenceRefs": [],
+        "expectedImprovement": "Preserve the current best resume.",
+        "risk": "low"
+      }
+    }
+  ]
+}

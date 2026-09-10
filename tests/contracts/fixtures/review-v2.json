@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "verdict": "PASS",
+  "roleInfoQuestion": null,
+  "overallScore": 82,
+  "positioningDiagnosis": {
+    "currentPositioning": "AI 平台运营与开发者支持实践者",
+    "targetPositioning": "有模型运营、API 支持和文档自动化证据的 AI 运营候选人",
+    "biggestGap": ""
+  },
+  "topIssues": [
+    {
+      "issueRef": "I1",
+      "priority": "P3",
+      "category": "WORDING",
+      "resolution": "REWRITE_NOW",
+      "section": "content.basics.summary",
+      "resumeEvidence": "摘要已写明 AI 平台运营与 API 支持，但结果没有前置。",
+      "jdEvidence": "负责平台运营和开发者支持。",
+      "sourceEvidence": "timeline.content.work[0].summary",
+      "problem": "最强证据在摘要中出现得不够早。",
+      "whyItHurts": "筛选者需要更久才能识别岗位相关能力。",
+      "recommendedAction": "将已有模型价格重建和 API 支持证据前置。"
+    }
+  ],
+  "jdCoverage": {
+    "strong": [
+      {"requirement": "平台运营", "evidence": "完成模型价格重建。"}
+    ],
+    "weak": [],
+    "unsupported": []
+  },
+  "strengths": ["经历含有可核对的模型运营、API 支持和文档自动化证据。"]
+}

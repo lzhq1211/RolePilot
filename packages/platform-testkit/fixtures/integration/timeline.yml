@@ -1,0 +1,10 @@
+timeline:
+  - type: work
+    title: Platform Engineer
+    company: Fixture Labs
+    startDate: 2023-01
+    endDate: 2024-12
+    summary: |
+      Built deterministic automation around internal tooling.
+    highlights:
+      - Improved CLI reliability with offline regression coverage.

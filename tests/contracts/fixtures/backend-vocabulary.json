@@ -1,0 +1,38 @@
+{
+  "providers": ["claude", "opencode", "codex", "openai-chat", "anthropic-api"],
+  "executionModes": ["live", "stub", "replay"],
+  "configFields": ["tool", "model", "temperature", "maxTokens", "extraArgs"],
+  "stubEnvVar": "ORCHESTRATE_AGENT_STUB_FILE",
+  "failurePolicyModes": {
+    "MANUAL": "manual",
+    "LOCAL_CI": "local-ci",
+    "GITHUB_ACTIONS": "github-actions"
+  },
+  "reviewStopReasons": {
+    "PASS": "pass",
+    "EARLY_STOP": "early-stop",
+    "MAX_ROUNDS": "max-rounds"
+  },
+  "executionStatuses": [
+    "queued",
+    "running",
+    "succeeded",
+    "failed",
+    "cancelled"
+  ],
+  "artifactKinds": [
+    "resume",
+    "review-report",
+    "optimization-decision",
+    "preflight",
+    "supplemental-evidence",
+    "questions",
+    "unsupported",
+    "jd-analysis",
+    "timeline",
+    "interview",
+    "cheatsheet",
+    "log"
+  ],
+  "logEventLevels": ["debug", "info", "warn", "error"]
+}
