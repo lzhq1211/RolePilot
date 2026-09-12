@@ -5,7 +5,7 @@ import type { AnswerInterpretation, QuestionCandidate } from "./types.js";
 import type { ResumeSliceContext } from "./vertical-slice-types.js";
 import { executeAgent } from "./slice-agents.js";
 import { registerArtifact } from "./slice-artifacts.js";
-import { createArtifactBaseName, parseJsonObject, toJsonText } from "./shared.js";
+import { createArtifactBaseName, parseJsonObject, stripMarkdownFences, toJsonText } from "./shared.js";
 import { wrapQuestionScreeningPrompt } from "./slice-step-prompts.js";
 
 export class AnswerInterpretationError extends Error {
@@ -31,6 +31,10 @@ export function parseQuestionCandidate(value: unknown): QuestionCandidate {
   if (Object.keys(item).some((key) => !fields.includes(key))) throw new Error("Question candidate contains unknown fields; gap IDs are assigned by code.");
   if (item.existingGapId !== null) text(item.existingGapId, "existingGapId");
   if (!["content_fact", "target_role", "qualification"].includes(String(item.intent))) throw new Error("Question intent is invalid.");
+  // Resumed-answer interpretation uses `unavailable` for a question that was
+  // not answered. Keep that status explicit in its own contract, but normalize
+  // the equivalent model output at this boundary before validating candidates.
+  if (item.sourceAssessment === "unavailable") item.sourceAssessment = "unanswered";
   if (!["unanswered", "partial", "answered"].includes(String(item.sourceAssessment))) throw new Error("Question sourceAssessment is invalid.");
   if (!["P0", "P1", "P2", "P3"].includes(String(item.priority))) throw new Error("Question priority is invalid.");
   for (const field of ["target", "missingFact", "question", "expectedImprovement"]) text(item[field], field);
@@ -94,7 +98,7 @@ export async function screenQuestionCandidates(context: ResumeSliceContext, cand
   const response = await executeAgent(context, "reviewer", stage, `question-screening-${stage}-${sequence}`,
     wrapQuestionScreeningPrompt(toJsonText({ candidates: initial.allowed, questionRecords: context.state.questionRecords, sourceMaterials })),
     "screen question meaning, qualification intent and already supplied facts before publication");
-  const payload = parseJsonObject(response, "Question screening");
+  const payload = parseJsonObject(stripMarkdownFences(response), "Question screening");
   if (!Array.isArray(payload.classifications) || payload.classifications.length !== initial.allowed.length) throw new Error("Question screening must classify every candidate.");
   const seen = new Set<number>();
   const classified = new Map<number, QuestionCandidate>();
@@ -177,7 +181,9 @@ export function parseAnswerInterpretation(value: unknown, context: ResumeSliceCo
       ? [...result.additionalFacts as Array<Record<string, unknown>>, ...result.corrections as Array<Record<string, unknown>>]
       : entry && ["answered", "partial"].includes(String(entry.status))
         ? entry.acceptedFacts as Array<Record<string, unknown>> : [];
-    if (!facts.some((fact) => fact.sourceQuote === item.sourceQuote)) throw new Error("Resolved boundary requires an accepted fact or correction with the same factual quote.");
+    if (!facts.some((fact) => fact.sourceQuote === item.sourceQuote)) {
+      throw new Error(`Resolved boundary requires an accepted fact or correction with the same factual quote. gapId=${JSON.stringify(item.gapId)}; received=${JSON.stringify(item.sourceQuote)}; copy one complete sourceQuote from ${JSON.stringify(facts.map((fact) => fact.sourceQuote))}, or omit this unresolved boundary.`);
+    }
   };
   for (const raw of result.resolvedRestrictions as unknown[]) {
     const item = object(raw, "Resolved restriction");

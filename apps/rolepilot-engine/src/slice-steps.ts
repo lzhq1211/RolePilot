@@ -589,15 +589,70 @@ export async function runPreflightStep(
   }
   const baseName = createArtifactBaseName(context.input.company);
   const attempt = context.state.preflightAttempts + 1;
-  const preflightText = await executeAgent(
-    context,
-    "reviewer",
-    "preflight",
-    "preflight",
-    wrapPreflightPrompt(toJsonText(buildPreflightPacket(context))),
-    "run preflight gate",
-  );
-  const parsedProposal = parsePreflightDecision(preflightText);
+  const buildPreflightCall = (
+    action: string,
+    retryContext: { parseError: string; invalidResponse: string } | undefined,
+  ) => {
+    const rawResponses: Array<{ path: string; absolutePath: string }> = [];
+    const call = executeAgent(
+      context,
+      "reviewer",
+      "preflight",
+      action,
+      wrapPreflightPrompt(toJsonText({
+        ...buildPreflightPacket(context),
+        previousParseError: retryContext?.parseError ?? null,
+        previousInvalidResponse: retryContext?.invalidResponse ?? null,
+      })),
+      "run preflight gate",
+      { onRawResponse: (record) => rawResponses.push(record) },
+    );
+    return { call, rawResponses };
+  };
+  const firstAction = "preflight";
+  const first = buildPreflightCall(firstAction, undefined);
+  let preflightText = "";
+  let parsedProposal: ReturnType<typeof parsePreflightDecision>;
+  let formatRetryAudit: Record<string, unknown> | undefined;
+  let firstResponsePath: string | null = null;
+  try {
+    preflightText = await first.call;
+    firstResponsePath = first.rawResponses[0]?.path ?? null;
+    parsedProposal = parsePreflightDecision(preflightText);
+  } catch (error) {
+    const retryable = isJsonSyntaxError(error)
+      && context.agentBindings.reviewer.mode === "live";
+    if (!retryable) throw error;
+    const parseError = error instanceof Error ? error.message : String(error);
+    const retryAction = `${firstAction}-json-retry-1`;
+    formatRetryAudit = {
+      stage: "preflight",
+      reason: "live-preflight-json-syntax-retry",
+      attempt,
+      parseError,
+      invalidResponsePath: firstResponsePath,
+      retryAction,
+    };
+    const retry = buildPreflightCall(retryAction, { parseError, invalidResponse: preflightText });
+    try {
+      preflightText = await retry.call;
+      formatRetryAudit.retryResponsePath = retry.rawResponses[0]?.path ?? null;
+      parsedProposal = parsePreflightDecision(preflightText);
+    } catch (retryError) {
+      registerArtifact(
+        context,
+        { kind: "log", fileName: `${baseName}.preflight.format-retry.attempt-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" },
+        toJsonText({ ...formatRetryAudit, result: "failed", failureReason: retryError instanceof Error ? retryError.message : String(retryError) }),
+      );
+      throw retryError;
+    }
+    formatRetryAudit.result = "recovered";
+    registerArtifact(
+      context,
+      { kind: "log", fileName: `${baseName}.preflight.format-retry.attempt-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" },
+      toJsonText(formatRetryAudit),
+    );
+  }
   const normalized = normalizePreflightProposalLocation(parsedProposal);
   if (normalized.relocated) {
     // 位置归一化审计必须在完整合同校验之前登记，确保迁移后仍失败也有记录。

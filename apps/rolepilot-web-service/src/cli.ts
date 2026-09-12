@@ -12,7 +12,6 @@ import { createLocalInfrastructure } from "./local-storage.js";
 import { RunEventHub } from "./run-events.js";
 import { createTextEvidenceObjectStore } from "./run-evidence.js";
 import { RunCancellationRegistry } from "./run-cancel.js";
-import { createResumeAgentBindings } from "rolepilot-engine";
 import { SupabaseRunRepository } from "./supabase-run-repository.js";
 import { createSourceApi } from "./source-api.js";
 import { SourceService } from "./source-service.js";
@@ -28,7 +27,7 @@ import { WorkbenchResultService } from "./workbench-result.js";
 import { WorkbenchService } from "./workbench-service.js";
 import { createWorkbenchApi } from "./workbench-api.js";
 import { SupabaseWorkbenchRepository } from "./supabase-workbench-repository.js";
-import { createProviderConfigApi } from "./provider-config.js";
+import { createLiveWorkerBindings, createProviderConfigApi } from "./provider-config.js";
 
 const config = requiredConfig(process.env);
 const gate = new MaintenanceGate();
@@ -93,17 +92,13 @@ if (!gate.maintaining) {
 await cleanupService.initialize();
 const workerMode = process.env.ROLEPILOT_WORKER_MODE?.trim() || "live";
 if (!["live", "stub"].includes(workerMode)) throw new Error("ROLEPILOT_WORKER_MODE must be live or stub.");
+const agentBindings = workerMode === "stub" ? createOfflineWorkerBindings(process.env) : createLiveWorkerBindings(process.env);
 const worker = new InProcessRunWorker({
   queue: runQueue,
   runRepository,
   sourceRepository: infrastructure.repository,
   workDir,
-  agentBindings: workerMode === "stub" ? createOfflineWorkerBindings(process.env) : createResumeAgentBindings({
-    miner: { tool: process.env.ROLEPILOT_MINER_PROVIDER || "openai-chat" },
-    writer: { tool: process.env.ROLEPILOT_WRITER_PROVIDER || "openai-chat" },
-    reviewer: { tool: process.env.ROLEPILOT_REVIEWER_PROVIDER || "openai-chat" },
-    interviewer: { tool: process.env.ROLEPILOT_INTERVIEWER_PROVIDER || "openai-chat" },
-  }),
+  agentBindings,
   env: process.env,
   maxReviewRounds: config.maxReviewRounds,
   eventHub,
@@ -114,8 +109,10 @@ const worker = new InProcessRunWorker({
   gate,
   onCleanupNeeded: () => cleanupService.wake(),
 });
-const envFilePath = path.resolve(projectRoot, ".env");
-const server = createSourceHttpServer(createWebApi({ sourceApi, draftApi, runApi, resultApi, workbenchApi, cleanupApi: createCleanupApi(cleanupService), providerConfigApi: createProviderConfigApi(envFilePath), gate }), gate);
+const server = createSourceHttpServer(createWebApi({ sourceApi, draftApi, runApi, resultApi, workbenchApi, cleanupApi: createCleanupApi(cleanupService), providerConfigApi: createProviderConfigApi(undefined, (savedValues) => {
+  if (workerMode !== "live") return;
+  Object.assign(agentBindings, createLiveWorkerBindings({ ...process.env, ...savedValues }));
+}), gate }), gate);
 
 server.listen(config.port, config.host, () => {
   worker.start();

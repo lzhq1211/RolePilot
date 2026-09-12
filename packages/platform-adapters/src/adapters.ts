@@ -1252,21 +1252,23 @@ export function createOpenAIChatAdapter(
         return replayAdapter.execute(request);
       }
 
+      const requestEnv = request.env ?? env;
+
       const apiKey =
         normalizeOptionalString(options.apiKey) ??
-        getEnvValue(env, "OPENAI_API_KEY");
+        getEnvValue(requestEnv, "OPENAI_API_KEY");
       const baseUrl =
         normalizeOptionalString(options.baseUrl) ??
-        getEnvValue(env, "OPENAI_BASE_URL") ??
+        getEnvValue(requestEnv, "OPENAI_BASE_URL") ??
         "https://api.openai.com/v1";
       const model =
         normalizeOptionalString(request.model) ??
         normalizeOptionalString(options.defaultModel) ??
-        getEnvValue(env, "OPENAI_CHAT_MODEL") ??
-        getEnvValue(env, "DEFAULT_MODEL");
+        getEnvValue(requestEnv, "OPENAI_CHAT_MODEL") ??
+        getEnvValue(requestEnv, "DEFAULT_MODEL");
       const endpoint = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
       const invocation = createApiInvocationMetadata(
-        { ...options, provider, env, defaultModel: model },
+        { ...options, provider, env: requestEnv, defaultModel: model },
         { ...request, model },
         endpoint,
       );

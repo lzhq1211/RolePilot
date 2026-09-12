@@ -16,6 +16,7 @@ export type ResumeAgentBinding = {
   provider: BackendProvider;
   mode?: BackendExecutionMode;
   model?: string;
+  env?: NodeJS.ProcessEnv;
   temperature?: number;
   maxTokens?: number;
   extraArgs?: string[];

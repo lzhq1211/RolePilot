@@ -23,6 +23,13 @@ export function toJsonText(value: unknown) {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
+export function stripMarkdownFences(text: string): string {
+  return text
+    .replace(/^```(?:ya?ml|json)?\s*\n?/gm, "")
+    .replace(/\n?```\s*$/gm, "")
+    .trim();
+}
+
 export function assertNonEmptyString(value: unknown, message: string) {
   if (typeof value !== "string" || value.trim().length === 0) {
     throw new Error(message);

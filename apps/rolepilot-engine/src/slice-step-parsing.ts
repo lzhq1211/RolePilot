@@ -11,7 +11,7 @@ import {
   normalizeReviewReportV2,
 } from "platform-contracts";
 
-import { isPlainObject, parseJsonObject } from "./shared.js";
+import { isPlainObject, parseJsonObject, stripMarkdownFences } from "./shared.js";
 import { parseQuestionCandidate } from "./question-policy.js";
 import { materializeOriginalResume, originalFromImportedText } from "./resume-document.js";
 import type {
@@ -19,12 +19,7 @@ import type {
   PreflightDecision,
 } from "./types.js";
 
-export function stripMarkdownFences(text: string): string {
-  return text
-    .replace(/^```(?:ya?ml|json)?\s*\n?/gm, "")
-    .replace(/\n?```\s*$/gm, "")
-    .trim();
-}
+export { stripMarkdownFences } from "./shared.js";
 
 /**
  * Stable error type for YAML.parse syntax failures. Policy layers use it to

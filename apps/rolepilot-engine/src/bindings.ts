@@ -74,10 +74,16 @@ export function createResumeAgentBindings(
   config: Record<string, AgentConfigSource>,
   overrides: Partial<Record<ResumeAgentName, Partial<ResumeAgentBinding>>> = {},
 ): ResumeAgentBindings {
-  return {
+  const bindings = {
     miner: createAgentBinding("miner", config, overrides),
     writer: createAgentBinding("writer", config, overrides),
     reviewer: createAgentBinding("reviewer", config, overrides),
     interviewer: createAgentBinding("interviewer", config, overrides),
+  };
+  const writingModel = bindings.miner.model ?? bindings.writer.model;
+  return {
+    ...bindings,
+    miner: { ...bindings.miner, model: writingModel },
+    writer: { ...bindings.writer, model: writingModel },
   };
 }

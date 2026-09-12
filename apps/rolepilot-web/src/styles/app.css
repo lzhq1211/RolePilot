@@ -208,6 +208,8 @@ p { color: var(--rp-text-secondary); font-size: 14px; font-weight: var(--rp-weig
 .provider-settings { max-width: 640px; }
 .provider-settings h1 { margin-bottom: 44px; }
 .provider-settings-form { display: flex; flex-direction: column; gap: 24px; }
+.provider-settings-group { display: flex; flex-direction: column; gap: 18px; border: 1px solid #c5e7ff; border-radius: 16px; padding: 18px; }
+.provider-settings-group legend { padding: 0 8px; color: #40536c; font-size: 13px; font-weight: 800; letter-spacing: .12em; }
 .provider-settings-form label { display: flex; flex-direction: column; gap: 8px; color: #40536c; font-size: 12px; font-weight: 750; letter-spacing: .12em; }
 .provider-settings-form input { width: 100%; min-height: 52px; padding: 0 16px; border: 2px solid #c5e7ff; border-radius: 16px; background: #eef8ff; color: #40536c; outline: none; }
 .provider-settings-form input:focus { border-color: #65bdf5; box-shadow: 0 0 0 3px rgb(101 189 245 / 18%); }

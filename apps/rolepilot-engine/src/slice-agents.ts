@@ -71,7 +71,7 @@ function createAgentRequest(
     mode,
     input,
     cwd: context.input.rootDir,
-    env: context.input.env,
+    env: { ...context.input.env, ...binding.env },
     model: binding.model,
     temperature: binding.temperature,
     maxTokens: binding.maxTokens,

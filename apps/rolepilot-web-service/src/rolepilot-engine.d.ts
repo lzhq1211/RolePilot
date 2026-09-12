@@ -4,7 +4,7 @@ declare module "rolepilot-engine" {
     readonly questions: string[];
     constructor(stage: "preflight" | "review", questions: string[], cause: unknown);
   }
-  export type ResumeAgentBindings = Record<string, { provider: string; mode?: string; model?: string }>;
+  export type ResumeAgentBindings = Record<string, { provider: string; mode?: string; model?: string; env?: NodeJS.ProcessEnv }>;
   export type ResumeAppStatusEvent = { type: string; runId: string; stepId?: string; [key: string]: unknown };
   export type ResumeVerticalSliceInput = {
     rootDir: string; runId: string; createdAt?: string; company: Record<string, unknown>;
