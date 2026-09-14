@@ -41,7 +41,11 @@ resume-extract*.txt
 .rolepilot-data/
 
 # Local architecture diagram sources, previews, and visual checks
-/rolepilot-architecture.*
+/rolepilot-architecture.html
+/rolepilot-architecture.json
+/rolepilot-architecture.visual-check.html
+/rolepilot-architecture.visual-check.json
+/rolepilot-architecture.visual-check.*.png
 
 # Archived local development plans, audits, and retired build outputs
 /.rolepilot-private/

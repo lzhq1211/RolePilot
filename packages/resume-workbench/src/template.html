@@ -134,19 +134,15 @@
           </summary>
           <div class="toolbar-popover toolbar-action-options">
             <div class="toolbar-menu-section">
-              <button id="btn-pick-dir" class="toolbar-btn" title="选择文件夹并识别其中符合简历格式的 Markdown 和 JSON">导入文件夹</button>
               <button id="btn-import-md" class="toolbar-btn" title="导入单个 Markdown 文件">导入 Markdown</button>
               <button id="btn-import-json-file" class="toolbar-btn" title="导入单个 JSON 文件">导入 JSON</button>
             </div>
             <div class="toolbar-menu-section toolbar-menu-secondary">
               <button id="btn-paste-md" class="toolbar-btn" title="粘贴 Markdown 内容">粘贴 Markdown</button>
               <button id="btn-paste-json" class="toolbar-btn" title="粘贴 JSON 内容">粘贴 JSON</button>
-              <button id="btn-show-md-example" class="toolbar-btn" title="查看 Markdown 格式示例">Markdown 示例</button>
-              <button id="btn-show-json-example" class="toolbar-btn" title="查看 JSON 格式示例">JSON 示例</button>
             </div>
           </div>
         </details>
-        <button id="btn-refresh-dir" class="panel-icon-btn" title="刷新列表" hidden>↻</button>
       </div>
       <div id="panel-import-status" class="panel-import-status" role="status" aria-live="polite" hidden></div>
       <ul id="resume-list"></ul>
@@ -160,6 +156,5 @@
   </div>
 
   <input type="file" id="file-input-md" accept=".md,.markdown,text/markdown,text/plain" hidden>
-  <input type="file" id="file-input-directory" accept=".md,.markdown,.json,text/markdown,text/plain,application/json" webkitdirectory directory multiple hidden>
   <input type="file" id="file-input-json" accept=".json,application/json" hidden>
   <input type="file" id="file-input-photo" accept="image/jpeg,image/png,image/webp" hidden>
