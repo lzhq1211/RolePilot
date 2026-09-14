@@ -23,7 +23,7 @@ import {
   parseJsonObject,
 } from "./shared.js";
 import { isYamlSyntaxError } from "./slice-step-parsing.js";
-import { executeAgent } from "./slice-agents.js";
+import { executeAgent, executeAgentWithContract } from "./slice-agents.js";
 import { convertLegacyYamlToResumeContentV3 } from "./slice-step-jade.js";
 import {
   cleanAndValidateYaml,
@@ -215,17 +215,20 @@ export async function runMineStep(context: ResumeSliceContext) {
   );
   const importedResumeText = context.input.importedResumeText!;
   const baseName = createArtifactBaseName(context.input.company);
-  const mineOutput = await executeAgent(
-    context,
-    "miner",
-    "mine",
-    "mine",
-    wrapMinePrompt(importedResumeText),
-    "faithfully structure original resume and auxiliary timeline from source text",
-  );
-  const parsed = parseMineOutput(mineOutput, {
-    documentId: `${context.input.runId}:original`, importedResumeText,
-    allowLegacy: ["stub", "replay"].includes(context.agentBindings.miner.mode ?? "live"),
+  const parsed = await executeAgentWithContract(context, {
+    agent: "miner",
+    stepId: "mine",
+    action: "mine",
+    detail: "faithfully structure original resume and auxiliary timeline from source text",
+    prompt: (retry) => wrapMinePrompt(importedResumeText, retry),
+    parse: (mineOutput) => parseMineOutput(mineOutput, {
+      documentId: `${context.input.runId}:original`, importedResumeText,
+      allowLegacy: ["stub", "replay"].includes(context.agentBindings.miner.mode ?? "live"),
+    }),
+    auditFileName: `${baseName}.mine.format-retry.json`,
+    reasonPrefix: "live-mine",
+    isSyntaxError: isYamlSyntaxError,
+    syntaxKind: "yaml",
   });
   freezeOriginalResume(context, parsed.originalResume, importedResumeText,
     parsed.legacy ? "legacy-offline-text" : "imported-text", parsed.legacy ? "deterministic" : "miner");
@@ -610,67 +613,77 @@ export async function runPreflightStep(
     return { call, rawResponses };
   };
   const firstAction = "preflight";
-  const first = buildPreflightCall(firstAction, undefined);
   let preflightText = "";
-  let parsedProposal: ReturnType<typeof parsePreflightDecision>;
+  let normalizedProposal: ReturnType<typeof normalizePreflightProposalLocation> | undefined;
+  let modelDecision: PreflightDecision | undefined;
   let formatRetryAudit: Record<string, unknown> | undefined;
-  let firstResponsePath: string | null = null;
-  try {
-    preflightText = await first.call;
-    firstResponsePath = first.rawResponses[0]?.path ?? null;
-    parsedProposal = parsePreflightDecision(preflightText);
-  } catch (error) {
-    const retryable = isJsonSyntaxError(error)
-      && context.agentBindings.reviewer.mode === "live";
-    if (!retryable) throw error;
-    const parseError = error instanceof Error ? error.message : String(error);
-    const retryAction = `${firstAction}-json-retry-1`;
-    formatRetryAudit = {
-      stage: "preflight",
-      reason: "live-preflight-json-syntax-retry",
-      attempt,
-      parseError,
-      invalidResponsePath: firstResponsePath,
-      retryAction,
-    };
-    const retry = buildPreflightCall(retryAction, { parseError, invalidResponse: preflightText });
+  let retryContext: { parseError: string; invalidResponse: string; kind: "json" | "contract" } | undefined;
+  const maxAttempts = context.agentBindings.reviewer.mode === "live" ? 2 : 1;
+  for (let parseAttempt = 1; parseAttempt <= maxAttempts; parseAttempt += 1) {
+    const action = parseAttempt === 1
+      ? firstAction
+      : `${firstAction}-${retryContext?.kind === "json" ? "json" : "contract"}-retry-1`;
+    const call = buildPreflightCall(action, retryContext);
     try {
-      preflightText = await retry.call;
-      formatRetryAudit.retryResponsePath = retry.rawResponses[0]?.path ?? null;
-      parsedProposal = parsePreflightDecision(preflightText);
-    } catch (retryError) {
-      registerArtifact(
-        context,
-        { kind: "log", fileName: `${baseName}.preflight.format-retry.attempt-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" },
-        toJsonText({ ...formatRetryAudit, result: "failed", failureReason: retryError instanceof Error ? retryError.message : String(retryError) }),
+      preflightText = await call.call;
+      const parsedProposal = parsePreflightDecision(preflightText);
+      normalizedProposal = normalizePreflightProposalLocation(parsedProposal);
+      modelDecision = validatePreflightDecisionPayload(
+        normalizedProposal.proposal,
+        context.input.env,
+        { allowLegacy: ["stub", "replay"].includes(context.agentBindings.reviewer.mode ?? "live") },
       );
-      throw retryError;
+      if (normalizedProposal.relocated) {
+        // 位置归一化审计必须在完整合同校验之前登记，确保迁移后仍失败也有记录。
+        registerArtifact(context, { kind: "log", fileName: `${baseName}.preflight.proposal-relocation-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" }, toJsonText({
+          rule: "preflight-question-candidates-relocation",
+          from: "writingBoundary.questionCandidates",
+          to: "questionCandidates",
+          normalizedProposal: normalizedProposal.proposal,
+        }));
+      }
+      if (parseAttempt > 1 && formatRetryAudit) {
+        formatRetryAudit.retryResponsePath = call.rawResponses[0]?.path ?? null;
+      }
+      break;
+    } catch (error) {
+      if (context.input.signal?.aborted) throw error;
+      if (parseAttempt >= maxAttempts) {
+        if (formatRetryAudit) {
+          registerArtifact(
+            context,
+            { kind: "log", fileName: `${baseName}.preflight.format-retry.attempt-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" },
+            toJsonText({ ...formatRetryAudit, result: "failed", failureReason: error instanceof Error ? error.message : String(error) }),
+          );
+        }
+        throw error;
+      }
+      const parseError = error instanceof Error ? error.message : String(error);
+      const kind = isJsonSyntaxError(error) ? "json" : "contract";
+      retryContext = { parseError, invalidResponse: preflightText, kind };
+      formatRetryAudit = {
+        stage: "preflight",
+        reason: kind === "json" ? "live-preflight-json-syntax-retry" : "live-preflight-contract-retry",
+        attempt,
+        parseError,
+        invalidResponsePath: call.rawResponses[0]?.path ?? null,
+        retryAction: `${firstAction}-${kind}-retry-1`,
+      };
     }
-    formatRetryAudit.result = "recovered";
+  }
+  if (!modelDecision || !normalizedProposal) {
+    throw new Error("Preflight contract retry did not produce a validated proposal.");
+  }
+  if (formatRetryAudit) {
     registerArtifact(
       context,
       { kind: "log", fileName: `${baseName}.preflight.format-retry.attempt-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" },
-      toJsonText(formatRetryAudit),
+      toJsonText({ ...formatRetryAudit, result: "recovered" }),
     );
   }
-  const normalized = normalizePreflightProposalLocation(parsedProposal);
-  if (normalized.relocated) {
-    // 位置归一化审计必须在完整合同校验之前登记，确保迁移后仍失败也有记录。
-    registerArtifact(context, { kind: "log", fileName: `${baseName}.preflight.proposal-relocation-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" }, toJsonText({
-      rule: "preflight-question-candidates-relocation",
-      from: "writingBoundary.questionCandidates",
-      to: "questionCandidates",
-      normalizedProposal: normalized.proposal,
-    }));
-  }
-  const modelDecision = validatePreflightDecisionPayload(
-    normalized.proposal,
-    context.input.env,
-    { allowLegacy: ["stub", "replay"].includes(context.agentBindings.reviewer.mode ?? "live") },
-  );
   const questionFilter = await screenQuestionCandidates(context, questionAllowance(context).canAskUser
     ? modelDecision.questionCandidates ?? legacyQuestionCandidates(modelDecision.blockingQuestions).allowed : [], "preflight", buildSourceMaterials(context));
-  registerArtifact(context, { kind: "log", fileName: `${baseName}.preflight.proposal-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" }, toJsonText({ proposal: normalized.proposal, candidates: questionFilter, ...questionAllowance(context) }));
+  registerArtifact(context, { kind: "log", fileName: `${baseName}.preflight.proposal-${attempt}.json`, generator: "rolepilot-engine", stage: "supporting" }, toJsonText({ proposal: normalizedProposal.proposal, candidates: questionFilter, ...questionAllowance(context) }));
   const questionCandidates = questionFilter.allowed;
   const questions = questionCandidates.map((candidate) => candidate.question);
   const eligibilityNotes = uniqueText(modelDecision.eligibilityNotes ?? []);
@@ -832,6 +845,32 @@ function parseYamlDocument(text: string, label: string): Record<string, any> {
   return parsed as Record<string, any>;
 }
 
+function validateWriterEnvelope(text: string, structuredContent: boolean, isRevision: boolean): string {
+  const cleaned = cleanAndValidateYaml(text, "Writer output");
+  if (!structuredContent) return cleaned;
+  const value = YAML.parse(cleaned);
+  const valid = isRevision
+    ? Boolean(value && typeof value === "object" && !Array.isArray(value)
+      && typeof value.documentId === "string" && Array.isArray(value.operations)
+      && Object.keys(value).every((key) => ["documentId", "operations"].includes(key)))
+    : Boolean(value && typeof value === "object" && !Array.isArray(value)
+      && value.schemaVersion === 3 && typeof value.documentId === "string"
+      && value.profile && typeof value.profile === "object" && !Array.isArray(value.profile)
+      && Array.isArray(value.sections));
+  if (!valid) {
+    const error = new Error(isRevision
+      ? "Writer output contract requires documentId and operations only."
+      : "Writer output contract requires a complete ResumeContentV3 document with schemaVersion 3.");
+    error.name = "WriterContractError";
+    throw error;
+  }
+  return cleaned;
+}
+
+function isWriterContractError(error: unknown): boolean {
+  return error instanceof Error && error.name === "WriterContractError";
+}
+
 function resumeContent(document: Record<string, any>) {
   const content = readRecordField(document, "content");
   return content && typeof content === "object" && !Array.isArray(content)
@@ -948,6 +987,7 @@ export async function writeResumeDraft(
   const baseName = createArtifactBaseName(context.input.company);
   const isRevision = packet.revisionRound > 1;
   const structuredContent = Boolean(packet.originalResume);
+  const enforceWriterEnvelope = (context.agentBindings.writer.mode ?? "live") === "live" || Boolean(packet.currentDocument);
   const legacyRevision = isRevision && !packet.currentDocument && ["stub", "replay"].includes(context.agentBindings.writer.mode ?? "live");
   if (structuredContent && !legacyRevision && (packet.writingMode !== (isRevision ? "role-tailored-rewrite" : "initial-draft")
     || (isRevision && (!packet.currentDocument || !packet.optimizationDecision || !packet.reviewReport))
@@ -987,19 +1027,21 @@ export async function writeResumeDraft(
   try {
     resumeText = await first.call;
     firstResponsePath = first.rawResponses[0]?.path ?? null;
-    validatedResume = cleanAndValidateYaml(resumeText, "Writer output");
+    validatedResume = enforceWriterEnvelope
+      ? validateWriterEnvelope(resumeText, structuredContent, isRevision)
+      : cleanAndValidateYaml(resumeText, "Writer output");
   } catch (error) {
-    // R 批次有限例外（Codex 裁定）：仅 live 模式 Writer 响应出现 YAML 语法错误时，
-    // 同一次初稿/修订内允许一次显式、可审计的重试；合同/事实/越权校验失败不触发。
-    const retryable = isYamlSyntaxError(error)
+    // 仅 live 模式 Writer 响应出现序列化或顶层合同错误时重试一次；事实/越权校验失败不触发。
+    const retryable = (isYamlSyntaxError(error) || isWriterContractError(error))
       && (context.agentBindings.writer.mode ?? "live") === "live";
     if (!retryable) throw error;
     const parseError = error instanceof Error ? error.message : String(error);
-    const retryAction = isRevision ? `${baseAction}-yaml-retry-1` : "resume-write-yaml-retry-1";
+    const retryKind = isYamlSyntaxError(error) ? "yaml" : "contract";
+    const retryAction = isRevision ? `${baseAction}-${retryKind}-retry-1` : `resume-write-${retryKind}-retry-1`;
     const responseSequence = firstResponsePath?.match(/raw-response-(\d+)\.txt$/)?.[1] ?? "unknown";
     const intent: Record<string, unknown> = {
       stage: "write",
-      reason: "live-writer-yaml-syntax-retry",
+      reason: retryKind === "yaml" ? "live-writer-yaml-syntax-retry" : "live-writer-contract-retry",
       originalAction: baseAction,
       retryAction,
       revisionRound: packet.revisionRound,
@@ -1025,7 +1067,9 @@ export async function writeResumeDraft(
     try {
       retryText = await retry.call;
       intent.retryResponsePath = retry.rawResponses[0]?.path ?? null;
-      validatedResume = cleanAndValidateYaml(retryText, "Writer output");
+      validatedResume = enforceWriterEnvelope
+        ? validateWriterEnvelope(retryText, structuredContent, isRevision)
+        : cleanAndValidateYaml(retryText, "Writer output");
     } catch (retryError) {
       registerRetryAudit({ ...intent, result: "failed", failureReason: retryError instanceof Error ? retryError.message : String(retryError) }, ".result");
       throw retryError;
@@ -1191,59 +1235,76 @@ export async function evaluateResumeOnce(
   };
 
   const firstAction = `review-round-${input.round}`;
-  const first = buildReviewCall(firstAction, undefined);
-  let firstResponsePath: string | null = null;
   let reviewText = "";
-  let response: ReturnType<typeof parseReviewReport>;
+  let response: ReturnType<typeof parseReviewReport> | undefined;
   let formatRetryAudit: Record<string, unknown> | undefined;
-  try {
-    reviewText = await first.call;
-    firstResponsePath = first.rawResponses[0]?.path ?? null;
-    response = parseReviewReport(reviewText);
-  } catch (error) {
-    // R1 有界例外（Codex 裁定）：仅 live 模式、v3 候选、且首次响应为 JSON 语法错误时，
-    // 同一轮允许一次显式、可审计的重试；合同/绑定校验失败与 stub/replay 不触发。
-    const retryable = isJsonSyntaxError(error)
-      && context.agentBindings.reviewer.mode === "live"
-      && Boolean(candidateDocument);
-    if (!retryable) throw error;
-    const parseError = error instanceof Error ? error.message : String(error);
-    const retryAction = `${firstAction}-json-retry-1`;
-    formatRetryAudit = {
-      stage: "review",
-      reason: "live-review-json-syntax-retry",
-      round: input.round,
-      attempt: 1,
-      parseError,
-      candidatePath: input.currentResume.absolutePath,
-      candidateVersion,
-      evidenceVersion: context.state.evidenceVersion,
-      invalidResponsePath: firstResponsePath,
-      retryAction,
-    };
-    const retry = buildReviewCall(retryAction, { parseError, invalidResponse: reviewText });
+  let retryContext: { parseError: string; invalidResponse: string; kind: "json" | "contract" } | undefined;
+  const maxAttempts = context.agentBindings.reviewer.mode === "live" && Boolean(candidateDocument) ? 2 : 1;
+  const validateResponseContract = (parsed: ReturnType<typeof parseReviewReport>) => {
+    if (!candidateDocument) return;
+    if (!parsed.report || typeof parsed.report !== "object" || Array.isArray(parsed.report)
+      || !Array.isArray(parsed.issueTargets) || Object.keys(parsed).some((key) => !["report", "issueTargets"].includes(key))) {
+      throw new Error("Review of a v3 candidate requires exactly report and issueTargets.");
+    }
+    const report = structuredClone(parsed.report) as Record<string, unknown>;
+    validateReviewReport(report, context.input.env, { strict: true });
+  };
+  for (let parseAttempt = 1; parseAttempt <= maxAttempts; parseAttempt += 1) {
+    const action = parseAttempt === 1
+      ? firstAction
+      : `${firstAction}-${retryContext?.kind === "json" ? "json" : "contract"}-retry-1`;
+    const call = buildReviewCall(action, retryContext);
     try {
-      reviewText = await retry.call;
-      formatRetryAudit.retryResponsePath = retry.rawResponses[0]?.path ?? null;
-      response = parseReviewReport(reviewText);
-    } catch (retryError) {
+      reviewText = await call.call;
+      const parsed = parseReviewReport(reviewText);
+      validateResponseContract(parsed);
+      response = parsed;
+      if (parseAttempt > 1 && formatRetryAudit) {
+        formatRetryAudit.retryResponsePath = call.rawResponses[0]?.path ?? null;
+      }
+      break;
+    } catch (error) {
+      if (context.input.signal?.aborted) throw error;
+      if (parseAttempt >= maxAttempts) {
+        if (formatRetryAudit) {
+          registerArtifact(
+            context,
+            { kind: "log", fileName: `${createArtifactBaseName(context.input.company)}.review.format-retry.round-${input.round}.json`, generator: "rolepilot-engine", stage: "supporting" },
+            toJsonText({ ...formatRetryAudit, result: "failed", failureReason: error instanceof Error ? error.message : String(error) }),
+          );
+        }
+        throw error;
+      }
+      const parseError = error instanceof Error ? error.message : String(error);
+      const kind = isJsonSyntaxError(error) ? "json" : "contract";
+      retryContext = { parseError, invalidResponse: reviewText, kind };
+      formatRetryAudit = {
+        stage: "review",
+        reason: kind === "json" ? "live-review-json-syntax-retry" : "live-review-contract-retry",
+        round: input.round,
+        attempt: 1,
+        parseError,
+        candidatePath: input.currentResume.absolutePath,
+        candidateVersion,
+        evidenceVersion: context.state.evidenceVersion,
+        invalidResponsePath: call.rawResponses[0]?.path ?? null,
+        retryAction: `${firstAction}-${kind}-retry-1`,
+      };
       registerArtifact(
         context,
-        { kind: "log", fileName: `${createArtifactBaseName(context.input.company)}.review.format-retry.round-${input.round}.json`, generator: "rolepilot-engine", stage: "supporting" },
-        toJsonText({ ...formatRetryAudit, result: "failed", failureReason: retryError instanceof Error ? retryError.message : String(retryError) }),
+        { kind: "log", fileName: `${createArtifactBaseName(context.input.company)}.review.format-retry.round-${input.round}.intent.json`, generator: "rolepilot-engine", stage: "supporting" },
+        toJsonText({ ...formatRetryAudit, result: "pending" }),
       );
-      throw retryError;
     }
+  }
+  if (!response) throw new Error("Review contract retry did not produce a validated response.");
+  if (formatRetryAudit) {
     formatRetryAudit.result = "recovered";
     registerArtifact(
       context,
       { kind: "log", fileName: `${createArtifactBaseName(context.input.company)}.review.format-retry.round-${input.round}.json`, generator: "rolepilot-engine", stage: "supporting" },
       toJsonText(formatRetryAudit),
     );
-  }
-  if (candidateDocument && (!response.report || typeof response.report !== "object" || Array.isArray(response.report)
-    || !Array.isArray(response.issueTargets) || Object.keys(response).some((key) => !["report", "issueTargets"].includes(key)))) {
-    throw new Error("Review of a v3 candidate requires exactly report and issueTargets.");
   }
   let report = response.report && typeof response.report === "object" && !Array.isArray(response.report)
     ? response.report as Record<string, unknown> : response;
@@ -1521,58 +1582,68 @@ export async function decideOptimizationAction(
   if (!input.evaluation.binding && ["stub", "replay"].includes(context.agentBindings.reviewer.mode ?? "live") && getReviewVerdict(input.evaluation.report) === "NEED_ROLE_INFO") {
     decision = createNeedRoleInfoDecision(input.evaluation.report);
   } else {
-    const decisionText = await executeAgent(
-      context,
-      "reviewer",
-      "review",
-      `optimization-decision-${input.sequence}`,
-      wrapOptimizationDecisionPrompt(
-        toJsonText({
-          ...buildSourceMaterials(context),
-          ...questionAllowance(context),
-          reviewReport: input.evaluation.report,
-          reviewBinding: input.evaluation.binding ?? null,
-          reviewEvidenceVersion: input.evaluation.binding?.evidenceVersion ?? null,
-          currentDocument: readV3Resume(input.evaluation.currentResume.absolutePath),
-          evidenceVersion: context.state.evidenceVersion,
-          currentResumePath: input.evaluation.currentResume.absolutePath,
-          currentReviewPath: input.evaluation.reviewArtifact.absolutePath,
-          preflightDecision: context.state.preflightDecision,
-          eligibilityNotes: context.state.preflightDecision?.eligibilityNotes ?? [],
-          safeWritingScope: context.state.safeWritingScope,
-          actionHistory: context.state.actionHistory.map((entry) => ({
-            action: entry.decision.action,
-            target: entry.decision.target,
-            status: entry.status,
-            issueKey: entry.decision.issueKey,
-            targetNode: entry.decision.targetNode,
-            evidenceVersion: entry.decision.evidenceVersion,
-          })),
-          remainingBudget: input.remainingBudget,
-          previousProposalRejection: input.rejection ?? null,
-        }),
-      ),
-      `select optimization action ${input.sequence}`,
-    );
-    const parsedDecision = parseOptimizationDecision(decisionText);
     const candidateDocumentForDecision = readV3Resume(input.evaluation.currentResume.absolutePath);
     const nodeIndexForDecision = candidateDocumentForDecision ? indexResumeNodes(candidateDocumentForDecision) : null;
-    const normalizedDecision = normalizeOptimizationTargetNode(parsedDecision, nodeIndexForDecision);
-    if (normalizedDecision.change) {
-      // 封装审计必须在严格校验前登记，即使后续校验失败也留有记录。
-      registerArtifact(context, { kind: "log", fileName: `${createArtifactBaseName(context.input.company)}.optimization.targetnode-normalization-${input.sequence}.json`, generator: "rolepilot-engine", stage: "supporting" }, toJsonText({
-        rule: "optimization-targetnode-bare-string-wrapping",
-        sequence: input.sequence,
-        action: normalizedDecision.decision.action,
-        issueRef: normalizedDecision.decision.issueRef ?? null,
-        documentId: candidateDocumentForDecision?.documentId ?? null,
-        ...normalizedDecision.change,
-      }));
-    }
-    decision = validateOptimizationDecisionPayload(
-      normalizedDecision.decision,
-      { structuredContent: Boolean(input.evaluation.binding), allowLegacy: !input.evaluation.binding && ["stub", "replay"].includes(context.agentBindings.reviewer.mode ?? "live") },
-    );
+    const optimizationPacket = {
+      ...buildSourceMaterials(context),
+      ...questionAllowance(context),
+      reviewReport: input.evaluation.report,
+      reviewBinding: input.evaluation.binding ?? null,
+      reviewEvidenceVersion: input.evaluation.binding?.evidenceVersion ?? null,
+      currentDocument: candidateDocumentForDecision,
+      evidenceVersion: context.state.evidenceVersion,
+      currentResumePath: input.evaluation.currentResume.absolutePath,
+      currentReviewPath: input.evaluation.reviewArtifact.absolutePath,
+      preflightDecision: context.state.preflightDecision,
+      eligibilityNotes: context.state.preflightDecision?.eligibilityNotes ?? [],
+      safeWritingScope: context.state.safeWritingScope,
+      actionHistory: context.state.actionHistory.map((entry) => ({
+        action: entry.decision.action,
+        target: entry.decision.target,
+        status: entry.status,
+        issueKey: entry.decision.issueKey,
+        targetNode: entry.decision.targetNode,
+        evidenceVersion: entry.decision.evidenceVersion,
+      })),
+      remainingBudget: input.remainingBudget,
+      previousProposalRejection: input.rejection ?? null,
+    };
+    const parsedOptimizationDecision = await executeAgentWithContract(context, {
+      agent: "reviewer",
+      stepId: "review",
+      action: `optimization-decision-${input.sequence}`,
+      detail: `select optimization action ${input.sequence}`,
+      prompt: (retry) => wrapOptimizationDecisionPrompt(
+        toJsonText({
+          ...optimizationPacket,
+          previousParseError: retry?.parseError ?? null,
+          previousInvalidResponse: retry?.invalidResponse ?? null,
+        }),
+        retry,
+      ),
+      parse: (decisionText) => {
+        const parsedDecision = parseOptimizationDecision(decisionText);
+        const normalizedDecision = normalizeOptimizationTargetNode(parsedDecision, nodeIndexForDecision);
+        if (normalizedDecision.change) {
+          registerArtifact(context, { kind: "log", fileName: `${createArtifactBaseName(context.input.company)}.optimization.targetnode-normalization-${input.sequence}.json`, generator: "rolepilot-engine", stage: "supporting" }, toJsonText({
+            rule: "optimization-targetnode-bare-string-wrapping",
+            sequence: input.sequence,
+            action: normalizedDecision.decision.action,
+            issueRef: normalizedDecision.decision.issueRef ?? null,
+            documentId: candidateDocumentForDecision?.documentId ?? null,
+            ...normalizedDecision.change,
+          }));
+        }
+        return validateOptimizationDecisionPayload(
+          normalizedDecision.decision,
+          { structuredContent: Boolean(input.evaluation.binding), allowLegacy: !input.evaluation.binding && ["stub", "replay"].includes(context.agentBindings.reviewer.mode ?? "live") },
+        );
+      },
+      auditFileName: `${createArtifactBaseName(context.input.company)}.optimization.format-retry-${input.sequence}.json`,
+      auditMetadata: { sequence: input.sequence },
+      reasonPrefix: "live-optimization",
+    });
+    decision = parsedOptimizationDecision;
     const projectIssue = projectRewriteIssue(context, input.evaluation);
     if (projectIssue && (decision.action !== "REWRITE_SECTION" || decision.target !== "项目经历")) {
       const modelDecision = decision;

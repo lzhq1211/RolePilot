@@ -3,7 +3,7 @@ import { applySourceCorrections, indexResumeNodes } from "./resume-document-oper
 import { parseResumeContentV3 } from "web-contracts/resume-document";
 import type { AnswerInterpretation, QuestionCandidate } from "./types.js";
 import type { ResumeSliceContext } from "./vertical-slice-types.js";
-import { executeAgent } from "./slice-agents.js";
+import { executeAgentWithContract } from "./slice-agents.js";
 import { registerArtifact } from "./slice-artifacts.js";
 import { createArtifactBaseName, parseJsonObject, stripMarkdownFences, toJsonText } from "./shared.js";
 import { wrapQuestionScreeningPrompt } from "./slice-step-prompts.js";
@@ -95,30 +95,47 @@ export async function screenQuestionCandidates(context: ResumeSliceContext, cand
     return { allowed: selected.allowed, filtered: [...initial.filtered, ...selected.filtered] };
   }
   const sequence = stage === "preflight" ? context.state.preflightAttempts + 1 : context.state.actionHistory.length + 1;
-  const response = await executeAgent(context, "reviewer", stage, `question-screening-${stage}-${sequence}`,
-    wrapQuestionScreeningPrompt(toJsonText({ candidates: initial.allowed, questionRecords: context.state.questionRecords, sourceMaterials })),
-    "screen question meaning, qualification intent and already supplied facts before publication");
-  const payload = parseJsonObject(stripMarkdownFences(response), "Question screening");
-  if (!Array.isArray(payload.classifications) || payload.classifications.length !== initial.allowed.length) throw new Error("Question screening must classify every candidate.");
-  const seen = new Set<number>();
-  const classified = new Map<number, QuestionCandidate>();
-  const filtered = [...initial.filtered];
-  for (const raw of payload.classifications) {
-    const item = object(raw, "Question classification");
-    const index = item.candidateIndex as number;
-    if (!Number.isInteger(index) || index < 0 || index >= initial.allowed.length || seen.has(index)) throw new Error("Question screening index is unknown or duplicated.");
-    seen.add(index);
-    const candidate = parseQuestionCandidate({ ...initial.allowed[index], intent: item.intent, sourceAssessment: item.sourceAssessment, existingGapId: item.existingGapId });
-    if (candidate.existingGapId && !context.state.questionRecords.some((record) => record.gapId === candidate.existingGapId)) throw new Error("Question screening references an unknown gap.");
-    if (item.duplicateOf !== null) {
-      if (!Number.isInteger(item.duplicateOf) || Number(item.duplicateOf) < 0 || Number(item.duplicateOf) >= index) throw new Error("Question duplicateOf must reference an earlier candidate.");
-      filtered.push({ candidate, reason: "semantic-duplicate" });
-    } else classified.set(index, candidate);
-  }
-  const selected = selectQuestionCandidates(context, [...classified.entries()].sort(([a], [b]) => a - b).map(([, candidate]) => candidate));
-  const result = { allowed: selected.allowed, filtered: [...filtered, ...selected.filtered] };
+  const screened = await executeAgentWithContract(context, {
+    agent: "reviewer",
+    stepId: stage,
+    action: `question-screening-${stage}-${sequence}`,
+    detail: "screen question meaning, qualification intent and already supplied facts before publication",
+    prompt: (retry) => wrapQuestionScreeningPrompt(toJsonText({
+      candidates: initial.allowed,
+      questionRecords: context.state.questionRecords,
+      sourceMaterials,
+      previousParseError: retry?.parseError ?? null,
+      previousInvalidResponse: retry?.invalidResponse ?? null,
+    }), retry),
+    parse: (response) => {
+      const payload = parseJsonObject(stripMarkdownFences(response), "Question screening");
+      if (!Array.isArray(payload.classifications) || payload.classifications.length !== initial.allowed.length) throw new Error("Question screening must classify every candidate.");
+      const seen = new Set<number>();
+      const classified = new Map<number, QuestionCandidate>();
+      const filtered = [...initial.filtered];
+      for (const raw of payload.classifications) {
+        const item = object(raw, "Question classification");
+        const index = item.candidateIndex as number;
+        if (!Number.isInteger(index) || index < 0 || index >= initial.allowed.length || seen.has(index)) throw new Error("Question screening index is unknown or duplicated.");
+        seen.add(index);
+        const candidate = parseQuestionCandidate({ ...initial.allowed[index], intent: item.intent, sourceAssessment: item.sourceAssessment, existingGapId: item.existingGapId });
+        if (candidate.existingGapId && !context.state.questionRecords.some((record) => record.gapId === candidate.existingGapId)) throw new Error("Question screening references an unknown gap.");
+        if (item.duplicateOf !== null) {
+          if (!Number.isInteger(item.duplicateOf) || Number(item.duplicateOf) < 0 || Number(item.duplicateOf) >= index) throw new Error("Question duplicateOf must reference an earlier candidate.");
+          filtered.push({ candidate, reason: "semantic-duplicate" });
+        } else classified.set(index, candidate);
+      }
+      if (seen.size !== initial.allowed.length) throw new Error("Question screening must classify every candidate exactly once.");
+      return { payload, classified, filtered };
+    },
+    auditFileName: `${createArtifactBaseName(context.input.company)}.question-screening-${stage}-${sequence}.format-retry.json`,
+    auditMetadata: { stage, sequence },
+    reasonPrefix: "live-question-screening",
+  });
+  const selected = selectQuestionCandidates(context, [...screened.classified.entries()].sort(([a], [b]) => a - b).map(([, candidate]) => candidate));
+  const result = { allowed: selected.allowed, filtered: [...screened.filtered, ...selected.filtered] };
   registerArtifact(context, { kind: "log", fileName: `${createArtifactBaseName(context.input.company)}.question-screening-${stage}-${sequence}.json`, generator: "rolepilot-engine", stage: "supporting" },
-    toJsonText({ classifications: payload.classifications, ...result }));
+    toJsonText({ classifications: screened.payload.classifications, ...result }));
   return result;
 }
 

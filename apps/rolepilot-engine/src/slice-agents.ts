@@ -5,7 +5,7 @@ import type {
 import { createTelemetryEvent, type WorkflowTask } from "platform-runtime";
 import type { ResumePlanStepId } from "platform-policy";
 
-import { assertNonEmptyString, stepIdToAgent } from "./shared.js";
+import { assertNonEmptyString, isJsonSyntaxError, stepIdToAgent, toJsonText } from "./shared.js";
 import { emitStatus, registerArtifact } from "./slice-artifacts.js";
 import type { AgentPrompt } from "./slice-step-prompts.js";
 import type { ResumeSliceContext } from "./vertical-slice-types.js";
@@ -166,6 +166,77 @@ export function executeAgent(
       options.onRawResponse?.(rawResponse);
       return outputText;
     });
+}
+
+export type ContractRetryContext = { parseError: string; invalidResponse: string };
+
+/** Retry only a received response that fails its output contract, never a provider failure. */
+export async function executeAgentWithContract<T>(
+  context: ResumeSliceContext,
+  options: {
+    agent: keyof ResumeSliceContext["agentQueues"];
+    stepId: ResumePlanStepId;
+    action: string;
+    detail: string;
+    prompt: (retry: ContractRetryContext | undefined) => AgentPrompt;
+    parse: (response: string) => T;
+    auditFileName: string;
+    auditMetadata?: Record<string, unknown>;
+    reasonPrefix: string;
+    retryEnabled?: boolean;
+    isSyntaxError?: (error: unknown) => boolean;
+    syntaxKind?: "json" | "yaml";
+  },
+): Promise<T> {
+  const live = (context.agentBindings[options.agent].mode ?? "live") === "live";
+  const maxAttempts = live && options.retryEnabled !== false ? 2 : 1;
+  let retry: ContractRetryContext | undefined;
+  let audit: Record<string, unknown> | undefined;
+  let action = options.action;
+  const saveAudit = (payload: Record<string, unknown>, intent = false) => registerArtifact(context, {
+    kind: "log",
+    fileName: intent ? options.auditFileName.replace(/\.json$/, ".intent.json") : options.auditFileName,
+    generator: "rolepilot-engine",
+    stage: "supporting",
+  }, toJsonText(payload));
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    let response = "";
+    let responseReceived = false;
+    let responsePath: string | null = null;
+    let parsed: T;
+    try {
+      response = await executeAgent(context, options.agent, options.stepId, action, options.prompt(retry), options.detail, {
+        onRawResponse: (record) => { responsePath = record.path; },
+      });
+      responseReceived = true;
+      parsed = options.parse(response);
+    } catch (error) {
+      const failureReason = error instanceof Error ? error.message : String(error);
+      if (!responseReceived || context.input.signal?.aborted || attempt >= maxAttempts) {
+        if (audit) saveAudit({ ...audit, retryResponsePath: responsePath, result: "failed", failureReason });
+        throw error;
+      }
+      const kind = (options.isSyntaxError ?? isJsonSyntaxError)(error) ? (options.syntaxKind ?? "json") : "contract";
+      retry = { parseError: failureReason, invalidResponse: response };
+      action = `${options.action}-${kind}-retry-1`;
+      audit = {
+        stage: options.stepId,
+        ...options.auditMetadata,
+        reason: `${options.reasonPrefix}-${kind === "contract" ? "contract" : `${kind}-syntax`}-retry`,
+        originalAction: options.action,
+        retryAction: action,
+        attempt: 1,
+        maxAttempts: 2,
+        parseError: failureReason,
+        invalidResponsePath: responsePath,
+      };
+      saveAudit({ ...audit, result: "pending" }, true);
+      continue;
+    }
+    if (audit) saveAudit({ ...audit, retryResponsePath: responsePath, result: "recovered" });
+    return parsed;
+  }
+  throw new Error("Agent contract retry did not produce a validated response.");
 }
 
 export function isResumePlanStepId(value: string): value is ResumePlanStepId {

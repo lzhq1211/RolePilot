@@ -384,6 +384,33 @@ test("runPreflightStep relocates nested candidates with an audit artifact in one
   assert.equal(audit.rule, "preflight-question-candidates-relocation");
 });
 
+test("live preflight retries once when the provider returns a legacy-shaped proposal", async () => {
+  const { sliceContext } = await createOptimizationTestContext("PASS");
+  const requests = [];
+  const boundary = { confidence: 0.9, missingEvidence: [], eligibilityNotes: [], unsupportedTargets: [], safeWritingScope: ["Use source facts."] };
+  const legacyShape = JSON.stringify({ writingBoundary: boundary, questionCandidates: [] });
+  const envelope = JSON.stringify({ schemaVersion: 1, writingBoundary: boundary, questionCandidates: [] });
+  sliceContext.agentBindings.reviewer.mode = "live";
+  sliceContext.registry = createCapturedRegistry({
+    preflight: legacyShape,
+    "preflight-contract-retry-1": envelope,
+  }, requests);
+
+  const result = await runPreflightStep(sliceContext);
+  assert.equal(result.decision, "PROCEED");
+  assert.deepEqual(requests.map((item) => item.action), ["preflight", "preflight-contract-retry-1"]);
+  const retryPacket = extractPromptPacket(requests[1].input, "--- PREFLIGHT INPUT DATA ---");
+  assert.match(retryPacket.previousParseError, /schemaVersion 1 proposal envelope/);
+  assert.match(requests[1].systemPrompt, /合同重试/);
+  const auditFiles = findFilesByName(sliceContext.input.rootDir, /format-retry\.attempt-2\.json$/);
+  assert.equal(auditFiles.length, 1);
+  const audit = JSON.parse(fs.readFileSync(auditFiles[0], "utf8"));
+  assert.equal(audit.reason, "live-preflight-contract-retry");
+  assert.equal(audit.result, "recovered");
+  assert.ok(audit.invalidResponsePath);
+  assert.ok(audit.retryResponsePath);
+});
+
 test("review section normalization replaces only null or blank sections with overall", () => {
   const report = { schemaVersion: 2, verdict: "REVISE", roleInfoQuestion: null, overallScore: 60,
     positioningDiagnosis: { currentPositioning: "a", targetPositioning: "b", biggestGap: "" },
@@ -1553,7 +1580,7 @@ test("live v3 review retries once on JSON syntax failure and records an audit ar
   const retryPacket = extractPromptPacket(reviewRequests[1].input, "--- RESUME TO REVIEW ---");
   assert.match(retryPacket.previousParseError, /invalid JSON/);
   assert.match(retryPacket.previousInvalidResponse, /」/);
-  assert.match(reviewRequests[1].systemPrompt, /FORMAT RETRY/);
+  assert.match(reviewRequests[1].systemPrompt, /FORMAT OR CONTRACT RETRY/);
   const auditFiles = findFilesByName(sliceContext.input.rootDir, /format-retry\.round-1\.json/);
   assert.equal(auditFiles.length, 1);
   const audit = JSON.parse(fs.readFileSync(auditFiles[0], "utf8"));
@@ -1588,12 +1615,13 @@ test("live v3 review fails after two consecutive syntax errors without a third c
   assert.equal(JSON.parse(fs.readFileSync(auditFiles[0], "utf8")).result, "failed");
 });
 
-test("live v3 review contract failures do not trigger the format retry", async () => {
+test("live v3 review contract failures retry once and remain bounded", async () => {
   const { sliceContext } = await createV3TestContext();
   const reviewRequests = [];
   sliceContext.agentBindings.reviewer.mode = "live";
   sliceContext.registry = createCapturedRegistry({
     "review-round-1": JSON.stringify(reviewV2),
+    "review-round-1-contract-retry-1": JSON.stringify(reviewV2),
   }, reviewRequests);
   await assert.rejects(
     () => evaluateResumeOnce(sliceContext, {
@@ -1602,7 +1630,10 @@ test("live v3 review contract failures do not trigger the format retry", async (
     }),
     /requires exactly report and issueTargets/,
   );
-  assert.deepEqual(reviewRequests.map((item) => item.action), ["review-round-1"]);
+  assert.deepEqual(reviewRequests.map((item) => item.action), [
+    "review-round-1",
+    "review-round-1-contract-retry-1",
+  ]);
 });
 
 test("non-live review does not consume a retry response on syntax failure", async () => {
@@ -1639,7 +1670,7 @@ test("live writer retries once on YAML syntax failure and records intent and res
   ]);
   const retryPacket = extractPromptPacket(writeRequests[1].input, "--- INPUT DATA ---");
   assert.match(retryPacket.previousParseError, /invalid YAML/);
-  assert.match(writeRequests[1].systemPrompt, /FORMAT RETRY 1\/1/);
+  assert.match(writeRequests[1].systemPrompt, /FORMAT OR CONTRACT RETRY 1\/1/);
   const intentFiles = findFilesByName(sliceContext.input.rootDir, /writer\.format-retry\.resume-write\.\d+\.json$/);
   const resultFiles = findFilesByName(sliceContext.input.rootDir, /writer\.format-retry\.resume-write\.\d+\.result\.json$/);
   assert.equal(intentFiles.length, 1);
